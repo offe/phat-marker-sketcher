@@ -10,7 +10,9 @@ There is a technique in early software development stages where focus is on the 
 
 ![Sketch of UI for Phat Marker Sketcher](images/phamask1.png)
 
-Phat Marker Sketcher is a tool to encourage this way of working. The focus is on simple sketches, without graphical details and styles. The sketches comes with a text document describing the different elements of the design. One Phat Marker Sketcher project is a collection of these one page sketches that can describe a full application or a new feature in an existing product.
+Phat Marker Sketcher is a tool to encourage this way of working. The focus is on simple sketches, without graphical details and styles. The sketches comes with a text document describing the different elements of the design. A project in Phat Marker Sketcher is a collection of these one page sketches that can describe a full application or a new feature in an existing product.
+
+The style should be like quickly hand drawn pictures with a fat tipped marker. More like the word squiggles in the picture above, and not like the super straight boxes.
 
 ### The parts
 
@@ -20,6 +22,8 @@ There are four main parts in the app:
 2. A list of pages in the project. Each page has a name. There is an "Add page" button at the bottom
 3. The drawing area. A screen (that you can draw outside) with the drawn elements. There is a visible grid that everything snaps to default. The drawing is completely monochrone, but controls have colors (like draggable corners, the menu)
 4. Document pane. H1 is the project name. H2 are the page names. H3 are elements on the page. These headings are created when pages or elements are created. The project and page names are set by editing the headers in the document.
+
+The space given to the three panes (pages, sketch, documentation) can be adjusted by dragging the separators between them.
 
 ### The graphical elements
 
@@ -46,13 +50,15 @@ The app is written in javascript (and possibly soon typescript). It uses the Rea
 
 The document editor should include the possibility to change to bold, italic and so on. It should support lists (and possibly tables). It's probably implemented using a react text editor (Draft.js? Quill? Slate?).
 
-The undo feature is central in these types of apps, so all interactions are modelled using the Command Pattern.
+The undo feature is central in these types of apps, so all interactions are modelled using the Command Pattern. The last couple of hundred actions are also saved in the JSON export.
 
 ## Future
 
 ### Element types
 
-- Button
+- Box
+- Text button
+- Empty Button
 - Label
 - Multi line text
 - Image
@@ -66,3 +72,19 @@ The undo feature is central in these types of apps, so all interactions are mode
 - Line
 - Checklist
 - Input field
+
+### Devices / Screens
+
+- Desktop
+  - Small
+  - Medium
+  - Large
+- Phone
+  - Portrait
+  - Landscape
+- Phablet
+  - Portrait
+  - Landscape
+- Tablet
+  - Portrait
+  - Landscape
