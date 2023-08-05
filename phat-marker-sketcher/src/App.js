@@ -5,6 +5,7 @@ import styles from "./styles.module.css";
 import PageList from "./components/PageList";
 import SketchArea from "./components/SketchArea";
 import { Box } from "@mui/material";
+import MyTextEditor from "./components/MyTextEditor";
 
 function App() {
   return (
@@ -41,7 +42,9 @@ function App() {
             defaultSize={35}
             minsize={20}
           >
-            <Box className={styles.PanelInner}>Document</Box>
+            <Box className={styles.PanelInner}>
+              <MyTextEditor />
+            </Box>
           </Panel>
           <Box className={styles.FlexMargin}></Box>
         </PanelGroup>
