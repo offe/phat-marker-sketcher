@@ -25,17 +25,18 @@ function resizeCanvasToDisplaySize(canvas, size) {
   //if (canvas.width !== width || Math.abs(canvas.height - height) > 10) {
   if (canvas.width !== width || canvas.height !== height) {
     //console.log({ ratio });
-    console.log({ diff: height - canvas.height });
+    //console.log({ diff: height - canvas.height });
     const context = canvas.getContext("2d");
     canvas.width = width;
     canvas.height = height;
     context.scale(ratio, ratio);
-    console.log({
+    /*console.log({
       width,
       height,
       canvasWidth: canvas.width,
       canvasHeight: canvas.height,
     });
+    */
 
     return true;
   }
@@ -50,11 +51,11 @@ const useCanvas = (draw, size, canvasRef) => {
     let frameCount = 0;
     //let animationFrameId;
 
-    console.log("useEffect in canvas");
+    console.log("useEffect in canvas - redrawing");
 
     const render = () => {
-      console.log("Render");
-      console.log(new Date());
+      //console.log("Render");
+      //console.log(new Date());
       frameCount++;
       resizeCanvasToDisplaySize(canvas, size);
       context.save();
@@ -74,21 +75,47 @@ const useCanvas = (draw, size, canvasRef) => {
 };
 
 const MyCanvas = (props) => {
-  const { draw, ...rest } = props;
+  const { draw, eventListeners, ...rest } = props;
   const [size, setSize] = useState({ width: 0, height: 0 });
-  const canvasRef = useRef(null);
+  const canvasRef = useRef();
   useCanvas(draw, size, canvasRef);
+  useEffect(() => {
+    const currentCanvas = canvasRef.current;
+    const wrappedEventListeners = Object.entries(eventListeners).map(
+      ([eventName, listener]) => {
+        return [
+          eventName,
+          (event) => {
+            const rect = currentCanvas.getBoundingClientRect();
+            const canvasCoordinates = {
+              x: event.clientX - rect.left,
+              y: event.clientY - rect.top,
+            };
+            listener(event, canvasCoordinates);
+          },
+        ];
+      }
+    );
+    for (const [eventName, listener] of wrappedEventListeners) {
+      currentCanvas.addEventListener(eventName, listener);
+    }
+    return () => {
+      for (const [eventName, listener] of wrappedEventListeners) {
+        currentCanvas.removeEventListener(eventName, listener);
+      }
+    };
+  });
 
   const onResize = useCallback((target, resizeEntry) => {
-    console.log({ resizeEntry });
-    console.log({ box: resizeEntry.devicePixelContentBoxSize[0] });
+    //console.log({ resizeEntry });
+    //console.log({ box: resizeEntry.devicePixelContentBoxSize[0] });
     const height = resizeEntry.devicePixelContentBoxSize[0].blockSize;
     const width = resizeEntry.devicePixelContentBoxSize[0].inlineSize;
     console.log("onResize callback");
     //const width = target.clientWidth;
     //const height = target.clientHeight;
 
-    console.log({ width, height });
+    //console.log({ width, height });
     debounce(() => setSize({ width, height }), 50)();
   }, []);
 
