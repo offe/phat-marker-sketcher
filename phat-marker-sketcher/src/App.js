@@ -4,38 +4,49 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import styles from "./styles.module.css";
 import PageList from "./components/PageList";
 import SketchArea from "./components/SketchArea";
+import { Box } from "@mui/material";
 
 function App() {
   return (
     <>
-      <div className={styles.Container}>
-        <div className={styles.AppBar}>
+      <Box className={styles.Container}>
+        <Box className={styles.AppBar}>
           <ButtonAppBar />
-        </div>
-        <div className={styles.PanelRowOuter}>
-          <PanelGroup
-            className={styles.PanelRowInner}
-            /*autoSaveId="example"*/
-            direction="horizontal"
+        </Box>
+        <Box className={styles.FlexMargin}></Box>
+        <PanelGroup
+          className={styles.PanelRow}
+          /*autoSaveId="panel-widths"*/
+          direction="horizontal"
+        >
+          <Box className={styles.FlexMargin}></Box>
+          <Panel className={styles.ResizablePanel} defaultSize={20} minsize={5}>
+            <Box className={`${styles.PanelInner} ${styles.PageListPanel}`}>
+              <PageList></PageList>
+            </Box>
+          </Panel>
+          <PanelResizeHandle className={styles.ResizeHandleOuter} />
+          <Panel
+            className={styles.ResizablePanel}
+            defaultSize={45}
+            minsize={20}
           >
-            <Panel className={styles.Panel} defaultSize={20} minsize={5}>
-              <div className={styles.PanelContent}>
-                <PageList></PageList>
-              </div>
-            </Panel>
-            <PanelResizeHandle className={styles.ResizeHandleOuter} />
-            <Panel className={styles.Panel} defaultSize={45} minsize={20}>
-              <div className={styles.PanelContent}>
-                <SketchArea></SketchArea>
-              </div>
-            </Panel>
-            <PanelResizeHandle className={styles.ResizeHandleOuter} />
-            <Panel className={styles.Panel} defaultSize={35} minsize={20}>
-              <div className={styles.PanelContent}>Document</div>
-            </Panel>
-          </PanelGroup>
-        </div>
-      </div>
+            <Box className={styles.PanelInner}>
+              <SketchArea></SketchArea>
+            </Box>
+          </Panel>
+          <PanelResizeHandle className={styles.ResizeHandleOuter} />
+          <Panel
+            className={styles.ResizablePanel}
+            defaultSize={35}
+            minsize={20}
+          >
+            <Box className={styles.PanelInner}>Document</Box>
+          </Panel>
+          <Box className={styles.FlexMargin}></Box>
+        </PanelGroup>
+        <Box className={styles.FlexMargin}></Box>
+      </Box>
     </>
   );
 }

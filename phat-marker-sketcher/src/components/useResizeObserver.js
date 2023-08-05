@@ -1,8 +1,6 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect } from "react";
 
-function useResizeObserver(callback) {
-  const ref = useRef(null);
-
+function useResizeObserver(callback, ref) {
   useLayoutEffect(() => {
     const element = ref?.current;
 

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import useResizeObserver from "./useResizeObserver";
+import styles from "../styles.module.css";
 
 /* We should use some throttle here instead. We don't want to draw for every change, but we also don't want to wait until the resizing has stopped. 
 We'd like to redraw every 20ms while the resize is continuing (and also when it's stopped). */
@@ -13,18 +14,25 @@ function debounce(f, delay) {
 
 function resizeCanvasToDisplaySize(canvas, size) {
   const { width, height } = size; //canvas.getBoundingClientRect();
-  const intWidth = parseInt(width);
-  const intHeight = parseInt(height - 4);
+  //const { width, height } = canvas.getBoundingClientRect();
+  //const width = canvas.clientWidth;
+  //const height = canvas.clientHeight;
 
-  if (canvas.width !== intWidth || canvas.height !== intHeight) {
-    const { devicePixelRatio: ratio = 1 } = window;
+  //const intWidth = parseInt(width);
+  //const intHeight = parseInt(height - 3);
+
+  const { devicePixelRatio: ratio = 1 } = window;
+  //if (canvas.width !== width || Math.abs(canvas.height - height) > 10) {
+  if (canvas.width !== width || canvas.height !== height) {
+    //console.log({ ratio });
+    console.log({ diff: height - canvas.height });
     const context = canvas.getContext("2d");
-    canvas.width = intWidth * ratio;
-    canvas.height = intHeight * ratio;
+    canvas.width = width;
+    canvas.height = height;
     context.scale(ratio, ratio);
     console.log({
-      intWidth,
-      intHeight,
+      width,
+      height,
       canvasWidth: canvas.width,
       canvasHeight: canvas.height,
     });
@@ -35,9 +43,7 @@ function resizeCanvasToDisplaySize(canvas, size) {
   return false;
 }
 
-const useCanvas = (draw, size) => {
-  const canvasRef = useRef(null);
-
+const useCanvas = (draw, size, canvasRef) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
@@ -62,7 +68,7 @@ const useCanvas = (draw, size) => {
     return () => {
       //window.cancelAnimationFrame(animationFrameId);
     };
-  }, [draw, size]);
+  }, [draw, size, canvasRef]);
 
   return canvasRef;
 };
@@ -70,33 +76,25 @@ const useCanvas = (draw, size) => {
 const MyCanvas = (props) => {
   const { draw, ...rest } = props;
   const [size, setSize] = useState({ width: 0, height: 0 });
-  const canvasRef = useCanvas(draw, size);
+  const canvasRef = useRef(null);
+  useCanvas(draw, size, canvasRef);
 
-  const onResize = useCallback((target) => {
-    // Handle the resize event
+  const onResize = useCallback((target, resizeEntry) => {
+    console.log({ resizeEntry });
+    console.log({ box: resizeEntry.devicePixelContentBoxSize[0] });
+    const height = resizeEntry.devicePixelContentBoxSize[0].blockSize;
+    const width = resizeEntry.devicePixelContentBoxSize[0].inlineSize;
     console.log("onResize callback");
-    const width = target.clientWidth;
-    const height = target.clientHeight;
+    //const width = target.clientWidth;
+    //const height = target.clientHeight;
 
     console.log({ width, height });
     debounce(() => setSize({ width, height }), 50)();
   }, []);
 
-  const resizeObserverRef = useResizeObserver(onResize);
+  useResizeObserver(onResize, canvasRef);
 
-  return (
-    <div
-      style={{ width: "100%", height: "100%" /* TODO: Why, oh, why? */ }}
-      ref={resizeObserverRef}
-    >
-      <canvas
-        ref={canvasRef}
-        size={size}
-        {...rest}
-        style={{ width: "100", height: "90" /* TODO: Why, oh, why? */ }}
-      />
-    </div>
-  );
+  return <canvas ref={canvasRef} {...rest} className={styles.canvas} />;
 };
 
 export default MyCanvas;
