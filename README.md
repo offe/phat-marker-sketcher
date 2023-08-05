@@ -48,7 +48,12 @@ The first step is a simple frontend only app, where you can load and save JSON-f
 
 The app is written in javascript (and possibly soon typescript). It uses the React framework. The drawing feature is implemented using a Canvas.
 
-The document editor should include the possibility to change to bold, italic and so on. It should support lists (and possibly tables). It's probably implemented using a react text editor (Draft.js? Quill? Slate?).
+The document editor should include the possibility to change to bold, italic and so on. It should support lists (and possibly tables). The first idea was to implement this using a react text editor (Draft.js? Quill? Slate?). But the current plan is to try out building this with a block editor instead (editor.js, SmartBlock? ).
+
+editor.js
+Has: JSON document, tables
+editor.js example:
+https://codesandbox.io/s/editorjs-react-editor-js-example-with-custom-react-block-template-up2zb?file=/src/index.js
 
 The undo feature is central in these types of apps, so all interactions are modelled using the Command Pattern. The last couple of hundred actions are also saved in the JSON export.
 
