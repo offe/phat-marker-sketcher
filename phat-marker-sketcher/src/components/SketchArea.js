@@ -1,7 +1,7 @@
 import * as React from "react";
 import MyCanvas from "./MyCanvas";
 
-const drawSquiggleStrokeWord = function (ctx) {
+const drawSquiggleStrokeWord = function (ctx, lineWidth) {
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(0, 0);
@@ -23,7 +23,7 @@ const drawSquiggleStrokeWord = function (ctx) {
   ctx.save();
   ctx.fillStyle = "rgba(0, 0, 0, 0)";
   ctx.strokeStyle = "#000000";
-  ctx.lineWidth = 6;
+  ctx.lineWidth = lineWidth;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.beginPath();
@@ -546,14 +546,31 @@ const drawSquiggleWord = function (ctx) {
 
 export default function SketchArea() {
   const draw = (ctx, frameCount) => {
+    const handleSize = 10;
+    const handleColor = "#1976d2";
+    const screenColor = "#ffffff";
+    const outsideColor = "#e8e8f0";
+    const belowTheFoldColor = "#f8f8f8";
+    const gridDotColor = "#d0d0d0";
+    const markerLineWidth = 5;
+
     console.log("draw called");
     //ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.fillStyle = "#e8e8e8";
+    ctx.fillStyle = outsideColor;
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    const gridSize = 20;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(1.5 * gridSize, 1.5 * gridSize, 20 * gridSize, 15 * gridSize);
+    const pageWidth = 375;
+    const pageHeight = 667;
+    const columns = 12;
+    const gutterRatio = 4;
+    const gridSize = pageWidth / columns;
+    ctx.translate(gridSize / 2, gridSize / 2);
+    ctx.fillStyle = screenColor;
+
+    ctx.translate(gridSize, gridSize);
+    ctx.fillRect(0, 0, pageWidth, pageHeight);
+    ctx.fillStyle = belowTheFoldColor;
+    ctx.fillRect(0, pageHeight, pageWidth, ctx.canvas.height - pageHeight);
 
     /*
     // Draw border for testing
@@ -564,39 +581,123 @@ export default function SketchArea() {
     ctx.stroke();
     */
 
-    ctx.fillStyle = "#d0d0d0";
-    for (let y = 0; y < ctx.canvas.height / gridSize; y++) {
-      for (let x = 0; x < ctx.canvas.width / gridSize; x++) {
-        ctx.fillRect(gridSize * (x + 0.5), gridSize * (y + 0.5), 2, 2);
+    ctx.fillStyle = gridDotColor;
+    for (let y = -1; y < ctx.canvas.height / gridSize; y++) {
+      for (let x = -1; x < ctx.canvas.width / gridSize; x++) {
+        ctx.fillRect(gridSize * x, gridSize * y, 2, 2);
       }
     }
 
-    ctx.save();
-    ctx.translate(50, 50);
-    //drawSquiggleWord(ctx);
-    drawSquiggleStrokeWord(ctx);
-    ctx.restore();
-
-    ctx.beginPath();
     ctx.strokeStyle = "#000000";
-    ctx.lineWidth = "6";
+    ctx.lineWidth = markerLineWidth;
     ctx.lineCap = "rounded";
     //ctx.rect(gridSize * 3.5, gridSize * 4.5, gridSize * 15, gridSize * 10);
-    ctx.roundRect(
-      gridSize * 3.5,
-      gridSize * 4.5,
-      gridSize * 15,
-      gridSize * 10,
-      6
-    );
-    ctx.stroke();
+    const selectedElementId = "5";
+    const elements = [
+      { id: "1", type: "box", rectangle: [2, 4, 8, 4] },
+      { id: "3", type: "box", rectangle: [2, 8, 8, 4] },
+      { id: "4", type: "box", rectangle: [3, 6, 6, 5] },
+      { id: "5", type: "box", rectangle: [2, 13, 4, 0] },
+      { id: "6", type: "text", rectangle: [2, 1, 8, 1] },
+      { id: "8", type: "text", rectangle: [2, 2, 8, 2] },
+      { id: "9", type: "box", rectangle: [2, 14, 1, 2] },
+    ];
+    for (const element of elements) {
+      const {
+        rectangle: [left, top, width, height],
+      } = element;
+      switch (element.type) {
+        case "box":
+          ctx.beginPath();
+          ctx.roundRect(
+            gridSize * (left + 0.5 / gutterRatio),
+            gridSize * (top + 0.5 / gutterRatio),
+            gridSize * (width - 1 / gutterRatio),
+            gridSize * (height - 1 / gutterRatio),
+            6
+          );
+          ctx.stroke();
+          break;
+        case "text":
+          ctx.save();
+          ctx.translate(
+            left * gridSize,
+            top * gridSize + height * 0.1 * gridSize
+          );
+          //drawSquiggleWord(ctx);
+          ctx.scale(height, height);
+          drawSquiggleStrokeWord(ctx, markerLineWidth / height);
+          ctx.restore();
+          break;
+        default:
+          console.log(`Unknown element type: ${element.type}`);
+          break;
+      }
+    }
 
-    /*
-    ctx.fillStyle = "#000000";
-    ctx.beginPath();
-    ctx.arc(50, 100, 20 * Math.sin(frameCount * 0.05) ** 2, 0, 2 * Math.PI);
-    ctx.fill();
-    */
+    const selectedElement = elements.find(({ id }) => id === selectedElementId);
+    const {
+      rectangle: [left, top, width, height],
+    } = selectedElement;
+    const right = left + width;
+    const bottom = top + height;
+
+    {
+      ctx.save();
+
+      // Rectangle
+      ctx.strokeStyle = handleColor;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.rect(
+        gridSize * left,
+        gridSize * top,
+        gridSize * width,
+        gridSize * height,
+        6
+      );
+      ctx.stroke();
+
+      // Corner handles
+      for (const { x, y, w = 1, h = 1 } of [
+        { y: top, x: left },
+        { y: top, x: right },
+        { y: bottom, x: right },
+        { y: bottom, x: left },
+        { y: top, x: (left + right) / 2, w: 2 },
+        { y: (top + bottom) / 2, x: right, h: 2 },
+        { y: bottom, x: (right + left) / 2, w: 2 },
+        { y: (top + bottom) / 2, x: left, h: 2 },
+      ]) {
+        const correctedHandleHeight = height === 1 ? Math.min(h, 1.5) : h;
+        const correctedHandleWidth = width === 1 ? Math.min(w, 1.5) : w;
+        ctx.beginPath();
+        /*
+        ctx.arc(
+          gridSize * x,
+          gridSize * y,
+          handleSize / 2,
+          0,
+          2 * Math.PI,
+          false
+        );
+        */
+        ctx.roundRect(
+          gridSize * x - correctedHandleWidth * (handleSize / 2),
+          gridSize * y - correctedHandleHeight * (handleSize / 2),
+          handleSize * correctedHandleWidth,
+          handleSize * correctedHandleHeight,
+          6
+        );
+        ctx.fillStyle = screenColor;
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = handleColor;
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
   };
   return <MyCanvas draw={draw} />;
 }
