@@ -8,83 +8,45 @@
 }
 
 .AppBar {
-  flex: none;
+    flex: none;
 }
 
-/*
-.PanelRowOuter {
-    flex: 1 1 auto;
-    margin: 0rem 1rem 1rem 1rem;
-  }
-  */
 .PanelRow {
     flex: 1 1 auto;
-    /*margin: 1rem;*/
-  }
-
-  /*
-.PanelRow:before,
-.PanelRow:after {
-  content:"";
 }
-*/
 
-  .ResizablePanel {
+.ResizablePanel {
     height: 100%;
     width: 100%;
-    overflow: hidden;
-    /*display: flex;
-    flex-direction: column;*/
-  }
+}
 
-  .PanelInner {
+.PanelInner {
     height: 100%;
     width: 100%;
     background-color: #fdfdfd;
     border-radius: 0.5rem;
-  }
+    overflow: hidden;
+}
 
-  .PanelContents {
-    height: 100%;
-    width: 100%;
-    /*position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;*/
-    overflow-x: hidden;
+.PageListPanel {
     overflow-y: scroll;
-    border-radius: 0.5rem;
-  }
+}
 
-  .PageListPanel {
-    overflow-y: scroll;
-  }
-
-  .FlexMargin {
+.FlexMargin {
     flex: 0 0 1em;
-    /*position: relative;*/
     outline: none;
-  
     --background-color: transparent;
-  }
+}
 
-  .ResizeHandleOuter {
+.ResizeHandleOuter {
     flex: 0 0 1em;
     position: relative;
     outline: none;
-  
+
     --background-color: transparent;
-  }
+}
 
 .canvas {
-  line-height: 0;
-  width: 100%;
-  height: 100%;
-  /*aspect-ratio: "unset";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;*/
-  }
+    width: 100%;
+    height: 100%;
+}
