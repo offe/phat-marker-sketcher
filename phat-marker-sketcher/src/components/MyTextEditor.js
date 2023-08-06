@@ -1,7 +1,8 @@
 import * as React from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useContext } from "react";
 import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
+import { ProjectContext, ProjectDispatchContext } from "./ProjectContext";
 
 // Monkey patch Header to prevent header tune options
 /*
@@ -14,6 +15,8 @@ Header.prototype.renderSettings = () => {
 };
 
 export default function MyTextEditor() {
+  const project = useContext(ProjectContext);
+  const projectDispatch = useContext(ProjectDispatchContext);
   const ejInstance = useRef();
   useEffect(() => {
     const DEFAULT_INITIAL_DATA = {
@@ -23,7 +26,7 @@ export default function MyTextEditor() {
           id: "project-name",
           type: "header",
           data: {
-            text: "My App",
+            text: project.projectName,
             level: 1,
           },
         },
@@ -95,6 +98,13 @@ export default function MyTextEditor() {
               false,
               "project-name"
             );
+          } else {
+            const newProjectName = projectNameHeader.data.text;
+            projectDispatch({
+              type: "rename-project",
+              projectName: newProjectName.trim(),
+            });
+            console.log(`Project name changed to: ${newProjectName}`);
           }
         },
         tools: {
@@ -117,7 +127,7 @@ export default function MyTextEditor() {
       ejInstance?.current?.destroy();
       ejInstance.current = null;
     };
-  }, []);
+  }, [projectDispatch]);
   return (
     <>
       <div id="editorjs"></div>

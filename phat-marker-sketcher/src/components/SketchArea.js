@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import MyCanvas from "./MyCanvas";
 
 const drawSquiggleStrokeWord = function (ctx, lineWidth, strokeStyle) {
@@ -657,6 +657,19 @@ const fetchMachine = createMachine({
       console.log({ type: "keydown", keyCode: keyEvent.code, keyEvent });
       console.log({ type: "keydown" });
       switch (mainState) {
+        case "idle":
+          switch (keyEvent.code) {
+            case "Tab":
+              console.log("Tab in idle");
+              if (elements.length > 0) {
+                setSelectedElementId(elements[0].id);
+                setMainState("selected");
+              }
+              break;
+            default:
+              break;
+          }
+          break;
         case "selected":
           switch (keyEvent.code) {
             case "Backspace":
@@ -667,6 +680,7 @@ const fetchMachine = createMachine({
               setMainState("idle");
               break;
             case "Tab":
+              console.log("Tab in selected");
               const currentIndex = elements.findIndex(
                 ({ id }) => id === selectedElementId
               );

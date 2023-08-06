@@ -1,14 +1,17 @@
 import * as React from "react";
+import { useContext } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import TreeItem from "@mui/lab/TreeItem";
 import TreeView from "@mui/lab/TreeView";
 import { Typography } from "@mui/material";
+import { ProjectContext } from "./ProjectContext";
 
 export default function PageList() {
+  const project = useContext(ProjectContext);
   return (
     <>
-      <Typography variant="h5">Pages</Typography>
+      <Typography variant="h5">{`Pages in ${project.projectName}`}</Typography>
       <TreeView
         aria-label="file system navigator"
         defaultCollapseIcon={<ExpandMoreIcon />}

@@ -103,7 +103,7 @@ const MyCanvas = (props) => {
       }
     );
     for (const [eventName, listener] of wrappedEventListeners) {
-      console.log(`Adding listener for: ${eventName}, ${listener}`);
+      //console.log(`Adding listener for: ${eventName}, ${listener}`);
       if (eventName.startsWith("mouse")) {
         currentCanvas.addEventListener(eventName, listener);
       } else {
