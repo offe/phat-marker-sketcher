@@ -3,6 +3,16 @@ import { useEffect, useRef } from "react";
 import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
 
+// Monkey patch Header to prevent header tune options
+/*
+  This makes it impossible to change header level. 
+  The user can still add headers, with the default level of 5
+*/
+Header.prototype.renderSettings = () => {
+  console.log("renderSettings called");
+  return [];
+};
+
 export default function MyTextEditor() {
   const ejInstance = useRef();
   useEffect(() => {
@@ -10,6 +20,7 @@ export default function MyTextEditor() {
       time: new Date().getTime(),
       blocks: [
         {
+          id: "project-name",
           type: "header",
           data: {
             text: "My App",
@@ -70,9 +81,31 @@ export default function MyTextEditor() {
           let content = await editor.saver.save();
 
           console.log(content);
+          const projectNameHeader = content.blocks.find(
+            ({ id }) => id === "project-name"
+          );
+          if (projectNameHeader === undefined) {
+            console.log("The project name header is gone! ");
+            editor.blocks.insert(
+              "header",
+              { text: "Project name", level: 1 },
+              undefined,
+              0,
+              undefined,
+              false,
+              "project-name"
+            );
+          }
         },
         tools: {
-          header: Header,
+          header: {
+            class: Header,
+            config: {
+              placeholder: "My Heading",
+              levels: [1, 2, 3, 4, 5],
+              defaultLevel: 5,
+            },
+          },
         },
       });
     };

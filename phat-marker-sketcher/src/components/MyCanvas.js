@@ -51,7 +51,7 @@ const useCanvas = (draw, size, canvasRef) => {
     let frameCount = 0;
     //let animationFrameId;
 
-    console.log("useEffect in canvas - redrawing");
+    //console.log("useEffect in canvas - redrawing");
 
     const render = () => {
       //console.log("Render");
@@ -79,29 +79,44 @@ const MyCanvas = (props) => {
   const [size, setSize] = useState({ width: 0, height: 0 });
   const canvasRef = useRef();
   useCanvas(draw, size, canvasRef);
+
   useEffect(() => {
     const currentCanvas = canvasRef.current;
     const wrappedEventListeners = Object.entries(eventListeners).map(
       ([eventName, listener]) => {
         return [
           eventName,
-          (event) => {
-            const rect = currentCanvas.getBoundingClientRect();
-            const canvasCoordinates = {
-              x: event.clientX - rect.left,
-              y: event.clientY - rect.top,
-            };
-            listener(event, canvasCoordinates);
-          },
+          eventName.startsWith("mouse")
+            ? (event) => {
+                const rect = currentCanvas.getBoundingClientRect();
+                const canvasCoordinates = {
+                  x: event.clientX - rect.left,
+                  y: event.clientY - rect.top,
+                };
+                listener(event, canvasCoordinates);
+              }
+            : (event) => {
+                console.log("in wrapped");
+                listener(event);
+              },
         ];
       }
     );
     for (const [eventName, listener] of wrappedEventListeners) {
-      currentCanvas.addEventListener(eventName, listener);
+      console.log(`Adding listener for: ${eventName}, ${listener}`);
+      if (eventName.startsWith("mouse")) {
+        currentCanvas.addEventListener(eventName, listener);
+      } else {
+        document.addEventListener(eventName, listener);
+      }
     }
     return () => {
       for (const [eventName, listener] of wrappedEventListeners) {
-        currentCanvas.removeEventListener(eventName, listener);
+        if (eventName.startsWith("mouse")) {
+          currentCanvas.removeEventListener(eventName, listener);
+        } else {
+          document.removeEventListener(eventName, listener);
+        }
       }
     };
   });

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MyCanvas from "./MyCanvas";
 
 const drawSquiggleStrokeWord = function (ctx, lineWidth, strokeStyle) {
@@ -247,8 +247,13 @@ const drawSquiggleStrokeWord = function (ctx, lineWidth, strokeStyle) {
   ctx.restore();
 };
 
+const nextAvailableId = (thingsWithIds) => {
+  const highest = Math.max(...thingsWithIds.map(({ id }) => parseInt(id) || 0));
+  return highest + 1;
+};
+
 export default function SketchArea() {
-  const elements = [
+  const [elements, setElements] = useState([
     { id: "1", type: "box", rectangle: [2, 4, 8, 4] },
     { id: "3", type: "box", rectangle: [2, 8, 8, 4] },
     { id: "4", type: "box", rectangle: [3, 6, 6, 5] },
@@ -256,11 +261,70 @@ export default function SketchArea() {
     { id: "6", type: "text", rectangle: [2, 1, 8, 1] },
     { id: "8", type: "text", rectangle: [2, 2, 8, 2] },
     { id: "9", type: "box", rectangle: [2, 14, 1, 2] },
-  ];
-  const [selectedElementId, setSelectedElementId] = useState("5");
+  ]);
+
+  /*
+  https://stately.ai/viz
+
+import { createMachine} from 'xstate';
+
+const fetchMachine = createMachine({
+  id: 'fetch',
+  initial: 'idle',
+  states: {
+    idle: {
+      on: {
+        MOUSEDOWN: 'started'
+      }
+    },
+    started: {
+      on: {
+        MOUSEUP_HIT: 'selected',
+        MOUSEUP_MISS: 'idle',
+        MOUSEMOVE_OVER_THRESHOLD: 'drawing'
+      }
+    },
+    selected: {
+      on: {
+        MOUSEDOWN_HIT_HANDLE: 'resizing',
+        MOUSEUP_HIT: 'selected',
+        MOUSEUP_MISS: 'idle',
+      }
+    },
+    drawing: {
+      on: {
+        MOUSEUP: 'selected'
+      }
+    },
+    resizing: {
+      on: {
+        MOUSEUP: 'selected'
+      }
+    },
+  }
+});
+  */
+
+  const [mainState, _setMainState] = useState("idle");
+  const setMainState = (newState) => {
+    if (
+      ["idle", "started", "selected", "drawing", "resizing"].includes(newState)
+    ) {
+      console.log(`MAIN STATE TRANSITION: ${mainState} -> ${newState}`);
+      _setMainState(newState);
+    } else {
+      throw new Error(`Invalid state: ${newState}`);
+    }
+  };
+
+  const [selectedElementId, setSelectedElementId] = useState(undefined);
   const [mouseCoordinates, setMouseCoordinates] = useState({
     x: 100,
     y: 200,
+  });
+  const [mouseStartCoordinates, setMouseStartCoordinates] = useState({
+    x: undefined,
+    y: undefined,
   });
 
   const pageWidth = 375;
@@ -270,6 +334,7 @@ export default function SketchArea() {
   const gridSize = pageWidth / columns;
 
   const draw = (ctx, frameCount) => {
+    //console.log("draw called");
     const handleSize = 10;
     const handleColor = "#1976d2";
     const screenColor = "#ffffff";
@@ -279,7 +344,6 @@ export default function SketchArea() {
     const markerLineWidth = 6;
     const strokeStyle = "rgba(0, 0, 0, 0.8)";
 
-    console.log("draw called");
     //ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.fillStyle = outsideColor;
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -346,8 +410,6 @@ export default function SketchArea() {
       }
     }
 
-    console.log("In draw:");
-    console.log({ selectedElementId });
     const selectedElement = elements.find(({ id }) => id === selectedElementId);
     if (selectedElement !== undefined) {
       const {
@@ -402,11 +464,10 @@ export default function SketchArea() {
           handleSize * correctedHandleHeight,
         ];
         ctx.roundRect(handleLeft, handleTop, handleWidth, handleHeight, 6);
-        const handleDistance = distance(
+        const handleDistance = distanceToRectangle(
           [handleLeft, handleTop, handleWidth, handleHeight],
           { x: mouseCoordinates.x - originX, y: mouseCoordinates.y - originY }
         );
-        console.log(handleDistance);
         if (handleDistance === 0) {
           ctx.fillStyle = handleColor;
         } else {
@@ -436,13 +497,19 @@ export default function SketchArea() {
     */
   };
 
-  function distance(rect, p) {
+  function distanceToPoint(p1, p2) {
+    const dx = p1.x - p2.x;
+    const dy = p1.y - p2.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function distanceToRectangle(rect, p) {
     const [left, top, width, height] = rect;
     const right = left + width;
     const bottom = top + height;
 
-    var dx = Math.max(left - p.x, 0, p.x - right);
-    var dy = Math.max(top - p.y, 0, p.y - bottom);
+    const dx = Math.max(left - p.x, 0, p.x - right);
+    const dy = Math.max(top - p.y, 0, p.y - bottom);
     return Math.sqrt(dx * dx + dy * dy);
   }
 
@@ -450,7 +517,7 @@ export default function SketchArea() {
     // This measures to the edges, i.e. you get a distance even within the rect
     // To make the selection nice, the distance inside a rect counts as a little bit less.
     // This makes it so if you have two rects with a common edge, a point being inside one of them will be closer to the rect it's inside.
-    const dist = distance(rect, p);
+    const dist = distanceToRectangle(rect, p);
     if (dist > 0) {
       return dist;
     }
@@ -468,6 +535,10 @@ export default function SketchArea() {
 
   const selectElementAt = (canvasCoordinates) => {
     //const { x, y } = canvasCoordinates;
+    if (elements.length === 0) {
+      setMainState("idle");
+      return;
+    }
     const gridCoordinates = mouseToGridCoordinates(canvasCoordinates); //{ x: x / gridSize - 1.5, y: y / gridSize - 1.5 };
     const { distance: closestDistance, id: closestElementId } = elements.reduce(
       (closest, { id, rectangle }) => {
@@ -482,25 +553,172 @@ export default function SketchArea() {
     );
     if (closestDistance <= 1) {
       setSelectedElementId(closestElementId);
+      setMainState("selected");
     } else {
       setSelectedElementId(undefined);
+      setMainState("idle");
     }
   };
 
+  // Lägg till så man kan dra ut nya boxar. Pajja resten, börja direkt på mousedown tills mouseup
+
   const eventListeners = {
     mousemove: (mouseEvent, canvasCoordinates) => {
+      console.log({ where: "mousemove", mouseEvent, canvasCoordinates });
       setMouseCoordinates(canvasCoordinates);
       //console.log("After mousemove");
       //console.log({ selectedElementId });
+      switch (mainState) {
+        case "started":
+          const distance = distanceToPoint(
+            canvasCoordinates,
+            mouseStartCoordinates
+          );
+          //console.log({ distance });
+          if (distance > 10) {
+            setMainState("drawing");
+            const { x: sx, y: sy } = mouseToGridCoordinates(
+              mouseStartCoordinates
+            );
+            const { x: cx, y: cy } = mouseToGridCoordinates(canvasCoordinates);
+            const top = Math.round(Math.min(sy, cy));
+            const left = Math.round(Math.min(sx, cx));
+            const bottom = Math.round(Math.max(sy, cy));
+            const right = Math.round(Math.max(sx, cx));
+            setElements([
+              ...elements,
+              {
+                id: nextAvailableId(elements),
+                type: "box",
+                rectangle: [left, top, right - left, bottom - top],
+              },
+            ]);
+          }
+          break;
+        case "drawing":
+          const { x: sx, y: sy } = mouseToGridCoordinates(
+            mouseStartCoordinates
+          );
+          const { x: cx, y: cy } = mouseToGridCoordinates(canvasCoordinates);
+          const lastElement = elements[elements.length - 1];
+          const top = Math.round(Math.min(sy, cy));
+          const left = Math.round(Math.min(sx, cx));
+          const bottom = Math.round(Math.max(sy, cy));
+          const right = Math.round(Math.max(sx, cx));
+          lastElement.rectangle = [left, top, right - left, bottom - top];
+          setElements([...elements]);
+
+          break;
+        default:
+          break;
+      }
     },
     mousedown: (mouseEvent, canvasCoordinates) => {
-      console.log({ mouseEvent, canvasCoordinates });
-      selectElementAt(canvasCoordinates);
-      setMouseCoordinates(canvasCoordinates);
+      console.log({ where: "mousedown", mouseEvent, canvasCoordinates });
+      setMouseStartCoordinates(canvasCoordinates);
+      setMainState("started");
+      //console.log("After mousemove");
+      //console.log({ selectedElementId });
+    },
+    mouseup: (mouseEvent, canvasCoordinates) => {
+      console.log({ where: "mouseup", mouseEvent, canvasCoordinates });
+
+      //setMouseCoordinates(canvasCoordinates);
+      //console.log({ mainState });
+      switch (mainState) {
+        case "started":
+          selectElementAt(canvasCoordinates);
+          break;
+        case "drawing":
+          setSelectedElementId(elements[elements.length - 1].id);
+          setMainState("selected");
+          break;
+        default:
+          break;
+      }
+      /*
+      if (selectedElementId === undefined) {
+        selectElementAt(canvasCoordinates);
+      } else {
+        const hoveredHandle = getHoveredHandle(element.rectangle, canvasCoordinates);
+        if (hoveredHandle === undefined) {
+          selectElementAt(canvasCoordinates);
+        } else {
+          setSelectedHandle(hoveredHandle);
+        }
+      }
+      */
     },
     mouseout: (mouseEvent, canvasCoordinates) => {
-      console.log({ mouseEvent, canvasCoordinates });
+      console.log({ where: "mouseout", mouseEvent, canvasCoordinates });
       setMouseCoordinates({ x: undefined, y: undefined });
+    },
+    keydown: (keyEvent) => {
+      console.log({ type: "keydown", keyCode: keyEvent.code, keyEvent });
+      console.log({ type: "keydown" });
+      switch (mainState) {
+        case "selected":
+          switch (keyEvent.code) {
+            case "Backspace":
+              setElements([
+                ...elements.filter(({ id }) => id !== selectedElementId),
+              ]);
+              setSelectedElementId(undefined);
+              setMainState("idle");
+              break;
+            case "Tab":
+              const currentIndex = elements.findIndex(
+                ({ id }) => id === selectedElementId
+              );
+              const nextIndex =
+                (currentIndex +
+                  (keyEvent.shiftKey ? -1 : 1) +
+                  elements.length) %
+                elements.length;
+              console.log({ currentIndex, nextIndex });
+              setSelectedElementId(elements[nextIndex].id);
+              break;
+            case "ArrowRight":
+            case "ArrowLeft": {
+              const xOffset = keyEvent.code === "ArrowRight" ? 1 : -1;
+              const currentElement = elements.find(
+                ({ id }) => id === selectedElementId
+              );
+              if (!keyEvent.shiftKey) {
+                currentElement.rectangle[0] += xOffset;
+              } else {
+                currentElement.rectangle[2] = Math.max(
+                  currentElement.rectangle[2] + xOffset,
+                  0
+                );
+              }
+              setElements([...elements]);
+              break;
+            }
+            case "ArrowUp":
+            case "ArrowDown": {
+              const yOffset = keyEvent.code === "ArrowDown" ? 1 : -1;
+              const currentElement = elements.find(
+                ({ id }) => id === selectedElementId
+              );
+              if (!keyEvent.shiftKey) {
+                currentElement.rectangle[1] += yOffset;
+              } else {
+                currentElement.rectangle[3] = Math.max(
+                  currentElement.rectangle[3] + yOffset,
+                  0
+                );
+              }
+              setElements([...elements]);
+              break;
+            }
+            default:
+              break;
+          }
+          break;
+        default:
+          break;
+      }
     },
   };
 
