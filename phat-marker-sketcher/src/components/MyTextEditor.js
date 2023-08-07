@@ -88,9 +88,22 @@ export default function MyTextEditor() {
         onChange: async () => {
           let content = await editor.saver.save();
 
-          console.log(content);
+          console.log(content.blocks);
 
-          const projectNameHeader = content.blocks.find(
+          // Get the total number of blocks in the editor
+          const blockCount = editor.blocks.getBlocksCount();
+
+          const visualBlocks = [...new Array(blockCount)].map((_, i) => {
+            const block = editor.blocks.getBlockByIndex(i);
+            const { id, isEmpty, name: type, selected } = block;
+            const actualBlock = content.blocks.find(
+              ({ id: cid }) => cid === id
+            );
+            const text = actualBlock?.data.text;
+            return { id, isEmpty, type, selected, text };
+          });
+
+          const projectNameHeader = visualBlocks.find(
             ({ id }) => id === "project-name"
           );
           if (projectNameHeader === undefined) {
@@ -105,21 +118,24 @@ export default function MyTextEditor() {
               "project-name"
             );
           } else {
-            const newProjectName = projectNameHeader.data.text;
+            const newProjectName = projectNameHeader.text || "(none)";
+            console.log(
+              `Calling projectDispatch with projectName ${newProjectName}`
+            );
             projectDispatch({
               type: "rename-project",
-              projectName: newProjectName.trim(),
+              projectName: newProjectName,
             });
           }
 
-          const firstPageNameHeader = content.blocks.find(
+          const firstPageNameHeader = visualBlocks.find(
             ({ id }) => id === "page-0"
           );
           if (firstPageNameHeader === undefined) {
             console.log("The fest page name header is gone! ");
             editor.blocks.insert(
               "header",
-              { text: project.pages[0].pageName, level: 1 },
+              { text: project.pages[0].pageName, level: 2 },
               undefined,
               1,
               undefined,
@@ -127,11 +143,11 @@ export default function MyTextEditor() {
               "page-0"
             );
           } else {
-            const newPageName = firstPageNameHeader.data.text;
+            const newPageName = firstPageNameHeader.text || "(none)";
             projectDispatch({
               type: "rename-page",
               pageNumber: 0,
-              pageName: newPageName.trim(),
+              pageName: newPageName,
             });
           }
         },
@@ -139,7 +155,7 @@ export default function MyTextEditor() {
           header: {
             class: Header,
             config: {
-              placeholder: "My Heading",
+              placeholder: "Name",
               levels: [1, 2, 3, 4, 5],
               defaultLevel: 5,
             },

@@ -292,7 +292,7 @@ export default function SketchArea() {
       },
       undefined
     );
-    if (closestDistance <= 1) {
+    if (closestDistance <= 0.6) {
       return closestElementId;
     }
     return undefined;
@@ -432,6 +432,7 @@ export default function SketchArea() {
         mouseEvent,
         canvasCoordinates,
       });*/
+      console.log(mouseEvent);
       console.log("mousedown");
       setMouseStartCoordinates(canvasCoordinates);
       switch (mainState) {
