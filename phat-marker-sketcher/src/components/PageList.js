@@ -13,11 +13,14 @@ export default function PageList() {
     <>
       <Typography variant="h5">{`Pages in ${project.projectName}`}</Typography>
       <TreeView
-        aria-label="file system navigator"
         defaultCollapseIcon={<ExpandMoreIcon />}
         defaultExpandIcon={<ChevronRightIcon />}
         style={{ flexGrow: 1, maxWidth: 400, overflowY: "auto" }}
       >
+        {project.pages.map(({ pageName }, i) => (
+          <TreeItem key={i} nodeId={`page-${i}`} label={pageName}></TreeItem>
+        ))}
+        {/*
         <TreeItem nodeId="1" label="Login">
           <TreeItem nodeId="2" label="Phone, landscape" />
         </TreeItem>
@@ -27,33 +30,7 @@ export default function PageList() {
         <TreeItem nodeId="5" label="Settings">
           <TreeItem nodeId="6" label="Phone, landscape" />
         </TreeItem>
-        <TreeItem nodeId="1" label="Login">
-          <TreeItem nodeId="2" label="Phone, landscape" />
-        </TreeItem>
-        <TreeItem nodeId="3" label="Start">
-          <TreeItem nodeId="4" label="Phone, landscape" />
-        </TreeItem>
-        <TreeItem nodeId="5" label="Settings">
-          <TreeItem nodeId="6" label="Phone, landscape" />
-        </TreeItem>
-        <TreeItem nodeId="1" label="Login">
-          <TreeItem nodeId="2" label="Phone, landscape" />
-        </TreeItem>
-        <TreeItem nodeId="3" label="Start">
-          <TreeItem nodeId="4" label="Phone, landscape" />
-        </TreeItem>
-        <TreeItem nodeId="5" label="Settings">
-          <TreeItem nodeId="6" label="Phone, landscape" />
-        </TreeItem>
-        <TreeItem nodeId="1" label="Login">
-          <TreeItem nodeId="2" label="Phone, landscape" />
-        </TreeItem>
-        <TreeItem nodeId="3" label="Start">
-          <TreeItem nodeId="4" label="Phone, landscape" />
-        </TreeItem>
-        <TreeItem nodeId="5" label="Settings">
-          <TreeItem nodeId="6" label="Phone, landscape" />
-        </TreeItem>
+        */}
       </TreeView>
     </>
   );

@@ -93,3 +93,9 @@ The undo feature is central in these types of apps, so all interactions are mode
 - Tablet
   - Portrait
   - Landscape
+
+## Todo
+
+- Move elements into project context
+- Add "drag" state
+- Set minimum size for elements to 1, 1 - no more weird inverted lines

@@ -80,47 +80,6 @@ const MyCanvas = (props) => {
   const canvasRef = useRef();
   useCanvas(draw, size, canvasRef);
 
-  useEffect(() => {
-    const currentCanvas = canvasRef.current;
-    const wrappedEventListeners = Object.entries(eventListeners).map(
-      ([eventName, listener]) => {
-        return [
-          eventName,
-          eventName.startsWith("mouse")
-            ? (event) => {
-                const rect = currentCanvas.getBoundingClientRect();
-                const canvasCoordinates = {
-                  x: event.clientX - rect.left,
-                  y: event.clientY - rect.top,
-                };
-                listener(event, canvasCoordinates);
-              }
-            : (event) => {
-                console.log("in wrapped");
-                listener(event);
-              },
-        ];
-      }
-    );
-    for (const [eventName, listener] of wrappedEventListeners) {
-      //console.log(`Adding listener for: ${eventName}, ${listener}`);
-      if (eventName.startsWith("mouse")) {
-        currentCanvas.addEventListener(eventName, listener);
-      } else {
-        document.addEventListener(eventName, listener);
-      }
-    }
-    return () => {
-      for (const [eventName, listener] of wrappedEventListeners) {
-        if (eventName.startsWith("mouse")) {
-          currentCanvas.removeEventListener(eventName, listener);
-        } else {
-          document.removeEventListener(eventName, listener);
-        }
-      }
-    };
-  });
-
   const onResize = useCallback((target, resizeEntry) => {
     //console.log({ resizeEntry });
     //console.log({ box: resizeEntry.devicePixelContentBoxSize[0] });
@@ -136,7 +95,50 @@ const MyCanvas = (props) => {
 
   useResizeObserver(onResize, canvasRef);
 
-  return <canvas ref={canvasRef} {...rest} className={styles.canvas} />;
+  const handleMouseEvent = (type, event) => {
+    const currentCanvas = canvasRef.current;
+    const rect = currentCanvas.getBoundingClientRect();
+    const canvasCoordinates = {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    };
+    const listener = eventListeners[type];
+    if (listener !== undefined) {
+      listener(event, canvasCoordinates);
+    }
+  };
+
+  const handleKeyEvent = (type, event) => {
+    const listener = eventListeners[type];
+    if (listener !== undefined) {
+      listener(event);
+    }
+    event.preventDefault();
+  };
+
+  return (
+    <canvas
+      ref={canvasRef}
+      {...rest}
+      className={styles.canvas}
+      onMouseDown={(event) => {
+        //eventListeners.mousedown(e);
+        handleMouseEvent("mousedown", event);
+      }}
+      onMouseMove={(event) => {
+        handleMouseEvent("mousemove", event);
+      }}
+      onMouseUp={(event) => {
+        handleMouseEvent("mouseup", event);
+      }}
+      onMouseOut={(event) => {
+        handleMouseEvent("mouseout", event);
+      }}
+      tabIndex={0}
+      onKeyUp={(event) => handleKeyEvent("keyup", event)}
+      onKeyDown={(event) => handleKeyEvent("keydown", event)}
+    />
+  );
 };
 
 export default MyCanvas;

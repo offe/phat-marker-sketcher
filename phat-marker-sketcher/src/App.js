@@ -14,7 +14,24 @@ import {
 } from "./components/ProjectContext";
 
 function App() {
-  const initialProject = { projectName: "My Project Name" };
+  const initialProject = {
+    projectName: "My Project Name",
+    version: 0,
+    pages: [
+      {
+        pageName: "Pagina Primus",
+        elements: [
+          { id: "1", type: "box", rectangle: [2, 4, 8, 4] },
+          { id: "3", type: "box", rectangle: [2, 8, 8, 4] } /*
+          { id: "4", type: "box", rectangle: [3, 6, 6, 5] },
+          { id: "5", type: "box", rectangle: [2, 13, 4, 0] },
+          { id: "6", type: "text", rectangle: [2, 1, 8, 1] },
+          { id: "8", type: "text", rectangle: [2, 2, 8, 2] },
+          { id: "9", type: "box", rectangle: [2, 14, 1, 2] },*/,
+        ],
+      },
+    ],
+  };
   const [project, projectDispatch] = useReducer(projectReducer, initialProject);
   return (
     <ProjectContext.Provider value={project}>

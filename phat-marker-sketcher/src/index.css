@@ -9,6 +9,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+canvas:focus {
+  outline: none;
+}
+
 #root {
   position: absolute;
   top: 0;

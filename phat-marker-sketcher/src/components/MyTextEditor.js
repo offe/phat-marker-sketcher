@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useRef, useContext } from "react";
+import { useEffect, useRef, useContext, useMemo } from "react";
 import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
 import { ProjectContext, ProjectDispatchContext } from "./ProjectContext";
@@ -7,7 +7,7 @@ import { ProjectContext, ProjectDispatchContext } from "./ProjectContext";
 // Monkey patch Header to prevent header tune options
 /*
   This makes it impossible to change header level. 
-  The user can still add headers, with the default level of 5
+  The user can still add headers, but only with the default level of 5
 */
 Header.prototype.renderSettings = () => {
   console.log("renderSettings called");
@@ -18,8 +18,9 @@ export default function MyTextEditor() {
   const project = useContext(ProjectContext);
   const projectDispatch = useContext(ProjectDispatchContext);
   const ejInstance = useRef();
-  useEffect(() => {
-    const DEFAULT_INITIAL_DATA = {
+
+  const INITIAL_EDITOR_DATA = useMemo(
+    () => ({
       time: new Date().getTime(),
       blocks: [
         {
@@ -30,13 +31,11 @@ export default function MyTextEditor() {
             level: 1,
           },
         },
-        {
+        ...project.pages.map(({ pageName }, i) => ({
+          id: `page-${i}`,
           type: "header",
-          data: {
-            text: "Start Page",
-            level: 2,
-          },
-        },
+          data: { text: pageName, level: 2 },
+        })),
         /*{
           type: "header",
           data: {
@@ -71,7 +70,13 @@ export default function MyTextEditor() {
           },
         },
       ],
-    };
+    }),
+    // I can't figure out how to only initalize the editor once, and then make changes in the created editor
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  useEffect(() => {
     const initEditor = () => {
       const editor = new EditorJS({
         holder: "editorjs",
@@ -79,11 +84,12 @@ export default function MyTextEditor() {
           ejInstance.current = editor;
         },
         autofocus: false,
-        data: DEFAULT_INITIAL_DATA,
+        data: INITIAL_EDITOR_DATA,
         onChange: async () => {
           let content = await editor.saver.save();
 
           console.log(content);
+
           const projectNameHeader = content.blocks.find(
             ({ id }) => id === "project-name"
           );
@@ -104,7 +110,29 @@ export default function MyTextEditor() {
               type: "rename-project",
               projectName: newProjectName.trim(),
             });
-            console.log(`Project name changed to: ${newProjectName}`);
+          }
+
+          const firstPageNameHeader = content.blocks.find(
+            ({ id }) => id === "page-0"
+          );
+          if (firstPageNameHeader === undefined) {
+            console.log("The fest page name header is gone! ");
+            editor.blocks.insert(
+              "header",
+              { text: project.pages[0].pageName, level: 1 },
+              undefined,
+              1,
+              undefined,
+              false,
+              "page-0"
+            );
+          } else {
+            const newPageName = firstPageNameHeader.data.text;
+            projectDispatch({
+              type: "rename-page",
+              pageNumber: 0,
+              pageName: newPageName.trim(),
+            });
           }
         },
         tools: {
@@ -120,6 +148,7 @@ export default function MyTextEditor() {
       });
     };
     if (ejInstance.current === null) {
+      console.log(`Initializing editor`);
       initEditor();
     }
 
@@ -127,10 +156,7 @@ export default function MyTextEditor() {
       ejInstance?.current?.destroy();
       ejInstance.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectDispatch]);
-  return (
-    <>
-      <div id="editorjs"></div>
-    </>
-  );
+  return <div id="editorjs"></div>;
 }
