@@ -2,22 +2,98 @@ import * as React from "react";
 import { useEffect, useRef, useContext, useMemo } from "react";
 import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
+import Paragraph from "@editorjs/paragraph";
+import NestedList from "@editorjs/nested-list";
+import Table from "@editorjs/table";
 import { ProjectContext, ProjectDispatchContext } from "./ProjectContext";
 
-// Monkey patch Header to prevent header tune options
-/*
-  This makes it impossible to change header level. 
-  The user can still add headers, but only with the default level of 5
-*/
-Header.prototype.renderSettings = () => {
-  console.log("renderSettings called");
-  return [];
-};
+class MyHeader extends Header {
+  // Prevent header tune options to change header level
+  renderSettings() {
+    console.log("renderSettings called");
+    return [];
+  }
+  // Replace placeholder with level specific ones
+  getTag() {
+    const tag = super.getTag();
+    const newPlaceholder = {
+      1: "Project name",
+      2: "Page name",
+      3: "Page variant name",
+      4: "Element name",
+      5: "Heading",
+    }[this._data.level];
+    if (newPlaceholder !== undefined) {
+      tag.dataset.placeholder = newPlaceholder;
+    }
+    return tag;
+  }
+  /*
+  removed() {
+    console.log("MyHeader.removed called");
+    console.log(this);
+    //super.removed(); // doesn't exist in current version of Header
+  }
+  */
+}
+
+class MyParagraph extends Paragraph {
+  getTag() {
+    const tag = super.getTag();
+    tag.dataset.placeholder = "Description";
+    return tag;
+  }
+}
 
 export default function MyTextEditor() {
   const project = useContext(ProjectContext);
   const projectDispatch = useContext(ProjectDispatchContext);
   const ejInstance = useRef();
+
+  const getVisualBlocks = (editor, content) => {
+    const blockCount = editor.blocks.getBlocksCount();
+    const blocks = content ? content.blocks : editor.configuration.data.blocks;
+    console.log({ blocks });
+
+    const visualBlocks = [...new Array(blockCount)].map((_, i) => {
+      const block = editor.blocks.getBlockByIndex(i);
+      console.log(block);
+      const { id, isEmpty, name: type, selected } = block;
+      //console.log(editor);
+      const actualBlock = blocks.find(({ id: cid }) => cid === id);
+      //console.log({ actualBlock });
+      const { text = undefined, level = undefined } = actualBlock?.data || {};
+      return { id, isEmpty, type, selected, text, level };
+    });
+    return visualBlocks;
+  };
+
+  const projectSingleDescriptionToEditorBlock = (description) => {
+    const { type, data } = description;
+    switch (type) {
+      case "text":
+        return { type: "paragraph", data: { text: data.text } };
+      case "list":
+        return { type: "list", data };
+      case "header":
+        return { type: "header", data: { text: data.text } };
+      case "table":
+        return {
+          type: "table",
+          data: { withHeadings: data.withHeadings, content: data.content },
+        };
+      default:
+        break;
+    }
+  };
+
+  const projectDescriptionToEditorBlocks = (description) =>
+    description
+      .map((e) => [
+        //{ type: "paragraph", data: { text: JSON.stringify(e) } },
+        projectSingleDescriptionToEditorBlock(e),
+      ])
+      .flat();
 
   const INITIAL_EDITOR_DATA = useMemo(
     () => ({
@@ -31,29 +107,46 @@ export default function MyTextEditor() {
             level: 1,
           },
         },
-        ...project.pages.map(({ pageName }, i) => ({
-          id: `page-${i}`,
-          type: "header",
-          data: { text: pageName, level: 2 },
-        })),
+        ...projectDescriptionToEditorBlocks(project.description),
+        ...project.pages
+          .map(({ pageName, description, elements }, i) => [
+            {
+              id: `page-${i}`,
+              type: "header",
+              data: { text: pageName, level: 2 },
+            },
+            ...projectDescriptionToEditorBlocks(description),
+            ...elements
+              .map(({ name: elementName, description }, j) => [
+                {
+                  id: `element-${i}-${j}`,
+                  type: "header",
+                  data: { text: elementName, level: 4 },
+                },
+                ...projectDescriptionToEditorBlocks(description),
+              ])
+              .flat(),
+          ])
+          .flat(),
         /*{
           type: "header",
           data: {
             text: "Main Variant",
             level: 3,
           },
-        },*/
+        },
         {
+          id: "1",
           type: "header",
           data: {
-            text: "An element",
+            text: "The first box",
             level: 4,
           },
         },
         {
           type: "paragraph",
           data: {
-            text: "What it does",
+            text: "This is just a nice little frame",
           },
         },
         {
@@ -69,6 +162,7 @@ export default function MyTextEditor() {
             text: "And why it's here",
           },
         },
+        */
       ],
     }),
     // I can't figure out how to only initalize the editor once, and then make changes in the created editor
@@ -86,63 +180,55 @@ export default function MyTextEditor() {
         autofocus: false,
         data: INITIAL_EDITOR_DATA,
         onChange: async () => {
-          let content = await editor.saver.save();
+          const content = await editor.saver.save();
 
           console.log(content.blocks);
 
-          // Get the total number of blocks in the editor
-          const blockCount = editor.blocks.getBlocksCount();
+          const visualBlocks = getVisualBlocks(editor, content);
 
-          const visualBlocks = [...new Array(blockCount)].map((_, i) => {
-            const block = editor.blocks.getBlockByIndex(i);
-            const { id, isEmpty, name: type, selected } = block;
-            const actualBlock = content.blocks.find(
-              ({ id: cid }) => cid === id
-            );
-            const text = actualBlock?.data.text;
-            return { id, isEmpty, type, selected, text };
-          });
+          const recreateIfRemoved = (id, insertParams) => {
+            const element = visualBlocks.find(({ id: cid }) => cid === id);
+            if (element === undefined) {
+              console.log(
+                `The block with id ${id} is missing, recreating it! `
+              );
+              editor.blocks.insert(...insertParams, id);
+            }
+          };
+
+          recreateIfRemoved("project-name", [
+            "header",
+            { text: "Untitled project", level: 1 },
+            {},
+            0,
+            undefined,
+            false,
+          ]);
 
           const projectNameHeader = visualBlocks.find(
             ({ id }) => id === "project-name"
           );
-          if (projectNameHeader === undefined) {
-            console.log("The project name header is gone! ");
-            editor.blocks.insert(
-              "header",
-              { text: "Project name", level: 1 },
-              undefined,
-              0,
-              undefined,
-              false,
-              "project-name"
-            );
-          } else {
+          if (projectNameHeader !== undefined) {
             const newProjectName = projectNameHeader.text || "(none)";
-            console.log(
-              `Calling projectDispatch with projectName ${newProjectName}`
-            );
             projectDispatch({
               type: "rename-project",
               projectName: newProjectName,
             });
           }
 
+          recreateIfRemoved("page-0", [
+            "header",
+            { text: "Untitled page", level: 2 },
+            {},
+            1,
+            undefined,
+            false,
+          ]);
+
           const firstPageNameHeader = visualBlocks.find(
             ({ id }) => id === "page-0"
           );
-          if (firstPageNameHeader === undefined) {
-            console.log("The fest page name header is gone! ");
-            editor.blocks.insert(
-              "header",
-              { text: project.pages[0].pageName, level: 2 },
-              undefined,
-              1,
-              undefined,
-              false,
-              "page-0"
-            );
-          } else {
+          if (firstPageNameHeader !== undefined) {
             const newPageName = firstPageNameHeader.text || "(none)";
             projectDispatch({
               type: "rename-page",
@@ -152,15 +238,38 @@ export default function MyTextEditor() {
           }
         },
         tools: {
-          header: {
-            class: Header,
+          paragraph: {
+            class: MyParagraph,
             config: {
-              placeholder: "Name",
+              placeholder: "Description",
+              preserveBlank: true,
+            },
+          },
+          header: {
+            class: MyHeader,
+            config: {
               levels: [1, 2, 3, 4, 5],
               defaultLevel: 5,
             },
           },
+          list: {
+            class: NestedList,
+            inlineToolbar: true,
+            config: {
+              defaultStyle: "unordered",
+            },
+          },
+          table: {
+            class: Table,
+            inlineToolbar: true,
+            config: {
+              rows: 2,
+              cols: 3,
+              withHeadings: true,
+            },
+          },
         },
+        defaultBlock: "paragraph",
       });
     };
     if (ejInstance.current === null) {
@@ -174,5 +283,57 @@ export default function MyTextEditor() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectDispatch]);
+
+  useEffect(() => {
+    const editor = ejInstance.current;
+    if (!editor) {
+      console.log("editor not ready yet");
+      return;
+    }
+    const { elements } = project.pages[0];
+    //console.log("MyTextEditor", elements.length);
+    console.log("All elements on first page: ");
+    for (const element of elements) {
+      console.log(element);
+    }
+    //console.log("trying to log editor");
+    //console.log({ editor });
+    const visualBlocks = getVisualBlocks(editor);
+    console.log({ visualBlocks });
+
+    // Can't easily see level of empty headers (visible, but not in contents)
+    const elementHeaderIds = visualBlocks
+      .filter(({ type, level }) => type === "header")
+      .map(({ id }) => id);
+    console.log({ elementHeaderIds });
+    const elementsWithoutHeaders = elements.filter(
+      ({ id }) => !elementHeaderIds.includes(id)
+    );
+    console.log({ elementsWithoutHeaders });
+    for (const element of elementsWithoutHeaders) {
+      const { id } = element;
+      console.log({ id, editor });
+      console.log({ blocks: editor.blocks });
+      editor.blocks.insert(
+        "header",
+        { text: "", level: 4 },
+        {},
+        editor.blocks.getBlocksCount(),
+        undefined,
+        false,
+        id
+      );
+      editor.blocks.insert(
+        "paragraph",
+        { text: "" },
+        {},
+        editor.blocks.getBlocksCount(),
+        undefined,
+        false,
+        id
+      );
+    }
+  }, [project]);
+
   return <div id="editorjs"></div>;
 }

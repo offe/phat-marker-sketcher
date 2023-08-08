@@ -102,3 +102,5 @@ The undo feature is central in these types of apps, so all interactions are mode
 - Add lasso (when shiftKey is true for mousemove when otherwise draw would start)
 - Add multiselect - drag and delete should work (not resize)
 - Set minimum size for elements to 1, 1 - no more weird inverted lines
+
+- Fork @editorjs/header (allow level specific placeholder strings, hide level selector in tune menu: stop using monkey patching)

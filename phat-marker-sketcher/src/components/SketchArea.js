@@ -6,7 +6,7 @@ import { ProjectContext, ProjectDispatchContext } from "./ProjectContext";
 
 const nextAvailableId = (thingsWithIds) => {
   const highest = Math.max(...thingsWithIds.map(({ id }) => parseInt(id) || 0));
-  return highest + 1;
+  return `${highest + 1}`;
 };
 
 export default function SketchArea() {

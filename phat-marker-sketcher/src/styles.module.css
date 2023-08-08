@@ -28,8 +28,12 @@
     overflow: hidden;
 }
 
-.PageListPanel {
+.PageListPanel, .EditorPanel {
     overflow-y: scroll;
+}
+
+.EditorPanelInner {
+    padding: 0 0.5rem 0 0.5rem;
 }
 
 .FlexMargin {
