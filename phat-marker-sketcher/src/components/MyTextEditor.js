@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useRef, useContext, useMemo } from "react";
+import { useState, useEffect, useRef, useContext, useMemo } from "react";
 import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
 import Paragraph from "@editorjs/paragraph";
@@ -95,8 +95,8 @@ export default function MyTextEditor() {
       ])
       .flat();
 
-  const INITIAL_EDITOR_DATA = useMemo(
-    () => ({
+  const createEditorDataFromProject = (project) => {
+    return {
       time: new Date().getTime(),
       blocks: [
         {
@@ -117,9 +117,9 @@ export default function MyTextEditor() {
             },
             ...projectDescriptionToEditorBlocks(description),
             ...elements
-              .map(({ name: elementName, description }, j) => [
+              .map(({ id, name: elementName, description }, j) => [
                 {
-                  id: `element-${i}-${j}`,
+                  id, //: `element-${i}-${j}`,
                   type: "header",
                   data: { text: elementName, level: 4 },
                 },
@@ -164,12 +164,17 @@ export default function MyTextEditor() {
         },
         */
       ],
-    }),
+    };
+  };
+
+  const INITIAL_EDITOR_DATA = useMemo(
+    () => createEditorDataFromProject(project),
     // I can't figure out how to only initalize the editor once, and then make changes in the created editor
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
+  const [projectId, setProjectId] = useState(undefined);
   useEffect(() => {
     const initEditor = () => {
       const editor = new EditorJS({
@@ -180,6 +185,11 @@ export default function MyTextEditor() {
         autofocus: false,
         data: INITIAL_EDITOR_DATA,
         onChange: async () => {
+          const editor = ejInstance.current;
+          if (!editor) {
+            console.log("editor not ready in onChange");
+            return;
+          }
           const content = await editor.saver.save();
 
           console.log(content.blocks);
@@ -288,6 +298,11 @@ export default function MyTextEditor() {
     const editor = ejInstance.current;
     if (!editor) {
       console.log("editor not ready yet");
+      return;
+    }
+    if (project.projectId !== projectId) {
+      editor.render(createEditorDataFromProject(project));
+      setProjectId(project.projectId);
       return;
     }
     const { elements } = project.pages[0];

@@ -96,7 +96,8 @@ The undo feature is central in these types of apps, so all interactions are mode
 
 ## Todo
 
-- Sync headings and element descriptions
+- Sync element names (header) and element descriptions from editor into project
+- Take all blocks after the element's header until another non level 5 header and put them into the description
 
 - Expand mainState into dict
 - Add lasso (when shiftKey is true for mousemove when otherwise draw would start)

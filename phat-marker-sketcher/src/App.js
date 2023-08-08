@@ -52,7 +52,7 @@ const sampleProject = {
           id: "1",
           type: "box",
           rectangle: [4, 7, 4, 4],
-          name: "Logo box",
+          name: "Logo",
           description: [
             {
               type: "text",

@@ -5,7 +5,10 @@ import { drawSquiggleStrokeWord } from "./drawSquiggleStrokeWord";
 import { ProjectContext, ProjectDispatchContext } from "./ProjectContext";
 
 const nextAvailableId = (thingsWithIds) => {
-  const highest = Math.max(...thingsWithIds.map(({ id }) => parseInt(id) || 0));
+  const highest = Math.max([
+    0,
+    ...thingsWithIds.map(({ id }) => parseInt(id) || 0),
+  ]);
   return `${highest + 1}`;
 };
 
@@ -14,6 +17,7 @@ export default function SketchArea() {
   const projectDispatch = useContext(ProjectDispatchContext);
   const { elements } = project.pages[0];
   const [mainState, _setMainState] = useState("idle");
+  const [showsGrid, setShowsGrid] = useState(true);
   const setMainState = (newState) => {
     console.log(`New mainState: ${newState}`);
     _setMainState(newState);
@@ -82,10 +86,12 @@ export default function SketchArea() {
     ctx.stroke();
     */
 
-    ctx.fillStyle = gridDotColor;
-    for (let y = -1; y < ctx.canvas.height / gridSize; y++) {
-      for (let x = -1; x < ctx.canvas.width / gridSize; x++) {
-        ctx.fillRect(gridSize * x - 1, gridSize * y - 1, 2, 2);
+    if (showsGrid) {
+      ctx.fillStyle = gridDotColor;
+      for (let y = -1; y < ctx.canvas.height / gridSize; y++) {
+        for (let x = -1; x < ctx.canvas.width / gridSize; x++) {
+          ctx.fillRect(gridSize * x - 1, gridSize * y - 1, 2, 2);
+        }
       }
     }
 
@@ -336,6 +342,7 @@ export default function SketchArea() {
                 id: newId,
                 type: "box",
                 rectangle: [left, top, right - left, bottom - top],
+                description: [],
               },
             ]);
           }
@@ -500,6 +507,15 @@ export default function SketchArea() {
         keyCode: keyEvent.code,
         keyEvent,
       });*/
+      switch (keyEvent.code) {
+        case "KeyG": {
+          console.log("KeyG");
+          setShowsGrid(!showsGrid);
+          break;
+        }
+        default:
+          break;
+      }
       switch (mainState) {
         case "idle":
           switch (keyEvent.code) {
@@ -518,6 +534,7 @@ export default function SketchArea() {
                   id: nextAvailableId(elements),
                   type: "box",
                   rectangle: [1, 1, 1, 1],
+                  description: [],
                 },
               ]);
               break;

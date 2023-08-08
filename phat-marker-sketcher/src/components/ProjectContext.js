@@ -3,8 +3,24 @@ import { createContext } from "react";
 export const ProjectContext = createContext(null);
 export const ProjectDispatchContext = createContext(null);
 
+export const emptyProject = {
+  projectName: "Untitled Project",
+  version: 0,
+  description: [],
+  pages: [
+    {
+      pageName: "Page 1",
+      description: [],
+      elements: [],
+    },
+  ],
+};
+
 export const _projectReducer = (project, action) => {
   switch (action.type) {
+    case "set-project": {
+      return { ...action.project, projectId: (project.projectId || 1) + 1 };
+    }
     case "rename-project": {
       if (project.projectName !== action.projectName) {
         return {
