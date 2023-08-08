@@ -97,11 +97,20 @@ The undo feature is central in these types of apps, so all interactions are mode
 ## Todo
 
 - Sync element names (header) and element descriptions from editor into project
-- Take all blocks after the element's header until another non level 5 header and put them into the description
 
+  - Take all blocks after the element's header until another non level 5 header and put them into the description
+
+- Select / indicate the blocks of the selected element
+- Indicate the element of the active block (go up in the blocks until an element header is found, stop at page headers)
+- Make it possible to add new pages
+- Add new actions (add-element) to project reducer (everything is using set-elements)
+- Add list of element types below page list
+
+  - Clicking one when an element is selected changes the type of that element
+  - Clicking one when nothing is selected makes newly drawn elements that type
+
+- Have a look on how often stuff is redrawn for no reason
 - Expand mainState into dict
 - Add lasso (when shiftKey is true for mousemove when otherwise draw would start)
 - Add multiselect - drag and delete should work (not resize)
 - Set minimum size for elements to 1, 1 - no more weird inverted lines
-
-- Fork @editorjs/header (allow level specific placeholder strings, hide level selector in tune menu: stop using monkey patching)
