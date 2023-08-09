@@ -9,11 +9,12 @@ import {
 } from "./ProjectContext";
 
 const nextAvailableId = (thingsWithIds) => {
-  const highest = Math.max([
-    0,
-    ...thingsWithIds.map(({ id }) => parseInt(id) || 0),
-  ]);
-  return `${highest + 1}`;
+  const allIds = thingsWithIds.map(({ id }) => parseInt(id) || 0);
+  const highest = Math.max(...[0, ...allIds]);
+  const next = highest + 1;
+  console.log({ where: "nextAvailableId", allIds });
+  console.log(`nextAvailableId returns: ${next}`);
+  return `${next}`;
 };
 
 export default function SketchArea() {
@@ -63,9 +64,15 @@ export default function SketchArea() {
     if (currentElement !== undefined) {
       currentElement.type = elementType;
       setElements([...elements]);
-      setElementType(currentElement.type);
     }
   }, [elementType]);
+
+  useEffect(() => {
+    const currentElement = elements.find(({ id }) => id === selectedElementId);
+    if (currentElement !== undefined) {
+      setElementType(currentElement.type);
+    }
+  }, [selectedElementId]);
 
   const draw = (ctx, frameCount) => {
     //console.log("draw called");
@@ -304,8 +311,7 @@ export default function SketchArea() {
     const { distance: closestDistance, element: closestElement } =
       elements.reduce((closest, element) => {
         //console.log(closest, id, rectangle);
-        const { id, rectangle } = element;
-        const distance = distanceToEdge(rectangle, gridCoordinates);
+        const distance = distanceToEdge(element.rectangle, gridCoordinates);
         if (closest === undefined || distance < closest.distance) {
           return { distance, element };
         }

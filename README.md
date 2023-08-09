@@ -100,10 +100,6 @@ The undo feature is central in these types of apps, so all interactions are mode
 - Make it possible to add new pages
 - Add new actions (add-element) to project reducer (everything is using set-elements)
 - Have a look at undo/redo
-- Add list of element types below page list
-
-  - Clicking one when an element is selected changes the type of that element
-  - Clicking one when nothing is selected makes newly drawn elements that type
 
 - Have a look on how often stuff is redrawn for no reason
 - Expand mainState into dict
