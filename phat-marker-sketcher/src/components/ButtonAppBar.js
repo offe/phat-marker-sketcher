@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -12,10 +12,14 @@ import {
   emptyProject,
 } from "./ProjectContext";
 import { downloadAsTextFile } from "../utils/downloadAsFile";
+import { useConfirm } from "material-ui-confirm";
 
 export default function ButtonAppBar() {
+  const confirm = useConfirm();
+
   const project = useContext(ProjectContext);
   const projectDispatch = useContext(ProjectDispatchContext);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const startNewProject = () => {
     projectDispatch({ type: "set-project", project: emptyProject });
@@ -90,10 +94,24 @@ export default function ButtonAppBar() {
     }
   };
 
+  const confirmReplaceCurrentProject = async (fileContents) => {
+    try {
+      await confirm({
+        title: "Load and replace current project?",
+        description:
+          "Loading a project will replace the one you are working on. Any unsaved work will be lost. ",
+        confirmationText: "Load and replace",
+      });
+      replaceCurrentProject(fileContents);
+    } catch (error) {
+      console.log("Load project cancelled.");
+    }
+  };
+
   const loadProjectFile = async () => {
     try {
       const contents = await loadFile();
-      replaceCurrentProject(contents);
+      confirmReplaceCurrentProject(contents);
     } catch (error) {
       console.error(error.message);
     }
@@ -101,18 +119,30 @@ export default function ButtonAppBar() {
 
   const handleProjectDragOver = (event) => {
     event.preventDefault();
-    event.stopPropagation();
+    //event.stopPropagation();
+    setIsDraggingOver(true);
+  };
+
+  const handleProjectDragEnter = (event) => {
+    event.preventDefault();
+    //event.stopPropagation();
+    setIsDraggingOver(true);
+  };
+
+  const handleProjectDragLeave = () => {
+    setIsDraggingOver(false);
   };
 
   const handleProjectDrop = async (event) => {
     event.preventDefault();
-    event.stopPropagation();
+    //event.stopPropagation();
+    setIsDraggingOver(false);
 
     try {
       const file = event.dataTransfer.files[0];
       if (file) {
         const contents = await readFileContents(file);
-        replaceCurrentProject(contents);
+        confirmReplaceCurrentProject(contents);
       }
     } catch (error) {
       console.error(error.message);
@@ -133,10 +163,18 @@ export default function ButtonAppBar() {
             Save project
           </Button>
           <Button
-            sx={{ color: "white" }}
+            sx={{
+              color: "white",
+              backgroundColor: `${
+                isDraggingOver ? "primary.light" : "primary.main"
+              }`,
+            }}
             onClick={loadProjectFile}
             onDrop={handleProjectDrop}
             onDragOver={handleProjectDragOver}
+            onDragEnter={handleProjectDragEnter}
+            onDragLeave={handleProjectDragLeave}
+            draggable={false}
           >
             Load project
           </Button>
