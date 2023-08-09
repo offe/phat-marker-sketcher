@@ -29,27 +29,35 @@ export default function ButtonAppBar() {
     );
   };
 
+  const readFileContents = async (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        resolve(e.target.result);
+      };
+
+      reader.onerror = function (e) {
+        reject(e.target.error);
+      };
+
+      reader.readAsText(file);
+    });
+  };
+
   const loadFile = async () => {
     try {
       const fileInput = document.createElement("input");
       fileInput.type = "file";
       fileInput.style.display = "none";
 
-      const filePromise = new Promise((resolve, reject) => {
+      const file = await new Promise((resolve, reject) => {
         fileInput.addEventListener("change", (event) => {
-          const file = event.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-
-            reader.onload = function (e) {
-              resolve(e.target.result);
-            };
-
-            reader.onerror = function (e) {
-              reject(e.target.error);
-            };
-
-            reader.readAsText(file);
+          const selectedFile = event.target.files[0];
+          if (selectedFile) {
+            resolve(selectedFile);
+          } else {
+            reject(new Error("No file selected"));
           }
         });
 
@@ -63,21 +71,49 @@ export default function ButtonAppBar() {
         });
 
         const handleFileChange = (event) => {
-          filePromise.resolve(event.target.files[0]);
+          fileInput.resolve(event.target.files[0]);
         };
       });
 
-      return await filePromise;
+      return await readFileContents(file);
     } catch (error) {
       throw new Error("Error loading file: " + error);
+    }
+  };
+
+  const replaceCurrentProject = (fileContents) => {
+    try {
+      const project = JSON.parse(fileContents);
+      projectDispatch({ type: "set-project", project });
+    } catch (error) {
+      console.error(error.message);
     }
   };
 
   const loadProjectFile = async () => {
     try {
       const contents = await loadFile();
-      const project = JSON.parse(contents);
-      projectDispatch({ type: "set-project", project });
+      replaceCurrentProject(contents);
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
+  const handleProjectDragOver = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handleProjectDrop = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    try {
+      const file = event.dataTransfer.files[0];
+      if (file) {
+        const contents = await readFileContents(file);
+        replaceCurrentProject(contents);
+      }
     } catch (error) {
       console.error(error.message);
     }
@@ -96,7 +132,12 @@ export default function ButtonAppBar() {
           <Button sx={{ color: "white" }} onClick={downloadProjectAsJson}>
             Save project
           </Button>
-          <Button sx={{ color: "white" }} onClick={loadProjectFile}>
+          <Button
+            sx={{ color: "white" }}
+            onClick={loadProjectFile}
+            onDrop={handleProjectDrop}
+            onDragOver={handleProjectDragOver}
+          >
             Load project
           </Button>
           <Box sx={{ flexGrow: 1 }} /> {/* Flexible spacer */}

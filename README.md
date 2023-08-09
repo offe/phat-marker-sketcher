@@ -48,12 +48,7 @@ The first step is a simple frontend only app, where you can load and save JSON-f
 
 The app is written in javascript (and possibly soon typescript). It uses the React framework. The drawing feature is implemented using a Canvas.
 
-The document editor should include the possibility to change to bold, italic and so on. It should support lists (and possibly tables). The first idea was to implement this using a react text editor (Draft.js? Quill? Slate?). But the current plan is to try out building this with a block editor instead (editor.js, SmartBlock? ).
-
-editor.js
-Has: JSON document, tables
-editor.js example:
-https://codesandbox.io/s/editorjs-react-editor-js-example-with-custom-react-block-template-up2zb?file=/src/index.js
+The document editor includes the possibility to change to bold, italic and so on. It supports lists and tables. The document editor part is using editorjs.
 
 The undo feature is central in these types of apps, so all interactions are modelled using the Command Pattern. The last couple of hundred actions are also saved in the JSON export.
 
@@ -104,6 +99,7 @@ The undo feature is central in these types of apps, so all interactions are mode
 - Indicate the element of the active block (go up in the blocks until an element header is found, stop at page headers)
 - Make it possible to add new pages
 - Add new actions (add-element) to project reducer (everything is using set-elements)
+- Have a look at undo/redo
 - Add list of element types below page list
 
   - Clicking one when an element is selected changes the type of that element
