@@ -1,8 +1,12 @@
 import * as React from "react";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import MyCanvas from "./MyCanvas";
 import { drawSquiggleStrokeWord } from "./drawSquiggleStrokeWord";
-import { ProjectContext, ProjectDispatchContext } from "./ProjectContext";
+import {
+  ProjectContext,
+  ProjectDispatchContext,
+  UiStateContext,
+} from "./ProjectContext";
 
 const nextAvailableId = (thingsWithIds) => {
   const highest = Math.max([
@@ -18,6 +22,7 @@ export default function SketchArea() {
   const { elements } = project.pages[0];
   const [mainState, _setMainState] = useState("idle");
   const [showsGrid, setShowsGrid] = useState(true);
+  const { elementType, setElementType } = useContext(UiStateContext);
   const setMainState = (newState) => {
     console.log(`New mainState: ${newState}`);
     _setMainState(newState);
@@ -52,6 +57,15 @@ export default function SketchArea() {
   const columns = 12;
   const gutterRatio = 4;
   const gridSize = pageWidth / columns;
+
+  useEffect(() => {
+    const currentElement = elements.find(({ id }) => id === selectedElementId);
+    if (currentElement !== undefined) {
+      currentElement.type = elementType;
+      setElements([...elements]);
+      setElementType(currentElement.type);
+    }
+  }, [elementType]);
 
   const draw = (ctx, frameCount) => {
     //console.log("draw called");
@@ -281,36 +295,36 @@ export default function SketchArea() {
     return { x: x / gridSize - 1.5, y: y / gridSize - 1.5 };
   };
 
-  const elementIdAt = (canvasCoordinates) => {
+  const elementAt = (canvasCoordinates) => {
     //const { x, y } = canvasCoordinates;
     if (elements.length === 0) {
       return undefined;
     }
     const gridCoordinates = mouseToGridCoordinates(canvasCoordinates); //{ x: x / gridSize - 1.5, y: y / gridSize - 1.5 };
-    const { distance: closestDistance, id: closestElementId } = elements.reduce(
-      (closest, { id, rectangle }) => {
+    const { distance: closestDistance, element: closestElement } =
+      elements.reduce((closest, element) => {
         //console.log(closest, id, rectangle);
+        const { id, rectangle } = element;
         const distance = distanceToEdge(rectangle, gridCoordinates);
         if (closest === undefined || distance < closest.distance) {
-          return { distance, id };
+          return { distance, element };
         }
         return closest;
-      },
-      undefined
-    );
+      }, undefined);
     if (closestDistance <= 0.6) {
-      return closestElementId;
+      return closestElement;
     }
     return undefined;
   };
 
   const selectElementAt = (canvasCoordinates) => {
-    const elementId = elementIdAt(canvasCoordinates);
-    setSelectedElementId(elementId);
-    if (elementId === undefined) {
+    const element = elementAt(canvasCoordinates);
+    setSelectedElementId(element?.id);
+    if (element === undefined) {
       setMainState("idle");
     } else {
       setMainState("selected");
+      setElementType(element.type);
     }
   };
 
@@ -340,7 +354,7 @@ export default function SketchArea() {
               ...elements,
               {
                 id: newId,
-                type: "box",
+                type: elementType,
                 rectangle: [left, top, right - left, bottom - top],
                 description: [],
               },
@@ -450,7 +464,7 @@ export default function SketchArea() {
           if (indicatedHandleName !== undefined) {
             setMainState("resizing");
             setResizingHandleName(indicatedHandleName);
-          } else if (elementIdAt(canvasCoordinates) === selectedElementId) {
+          } else if (elementAt(canvasCoordinates)?.id === selectedElementId) {
             setMainState("dragging");
             setDragStartCoordinates(
               elements.find(({ id }) => id === selectedElementId).rectangle
@@ -605,6 +619,7 @@ export default function SketchArea() {
               currentElement.type =
                 currentElement.type === "box" ? "text" : "box";
               setElements([...elements]);
+              setElementType(currentElement.type);
               break;
             }
             default:

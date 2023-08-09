@@ -5,17 +5,18 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import TreeItem from "@mui/lab/TreeItem";
 import TreeView from "@mui/lab/TreeView";
 import { Typography } from "@mui/material";
-import { ProjectContext } from "./ProjectContext";
+import { ProjectContext, UiStateContext } from "./ProjectContext";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import FormControl from "@mui/material/FormControl";
 
 export default function PageList() {
   const project = useContext(ProjectContext);
-  const [elementType, setElementType] = React.useState("box");
+  const { elementType, setElementType } = useContext(UiStateContext);
 
   const handleElementTypeChange = (event) => {
     setElementType(event.target.value);
@@ -52,11 +53,18 @@ export default function PageList() {
           <Typography /*variant="h5"*/>{`Element types`}</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <RadioGroup value={elementType} onChange={handleElementTypeChange}>
-            {elementTypes.map(({ id, name }, i) => (
-              <FormControlLabel value={id} control={<Radio />} label={name} />
-            ))}
-          </RadioGroup>
+          <FormControl>
+            <RadioGroup value={elementType} onChange={handleElementTypeChange}>
+              {elementTypes.map(({ id, name }, i) => (
+                <FormControlLabel
+                  value={id}
+                  control={<Radio size="small" />}
+                  label={name}
+                  sx={{ fontSize: "6px" }}
+                />
+              ))}
+            </RadioGroup>
+          </FormControl>
         </AccordionDetails>
       </Accordion>
       <Accordion>

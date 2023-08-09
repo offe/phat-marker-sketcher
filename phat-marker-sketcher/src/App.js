@@ -12,6 +12,7 @@ import MyTextEditor from "./components/MyTextEditor";
 import {
   ProjectContext,
   ProjectDispatchContext,
+  UiStateContextProvider,
   projectReducer,
 } from "./components/ProjectContext";
 
@@ -200,54 +201,58 @@ function App() {
   return (
     <ProjectContext.Provider value={project}>
       <ProjectDispatchContext.Provider value={projectDispatch}>
-        <ConfirmProvider>
-          <Box className={styles.Container}>
-            <Box className={styles.AppBar}>
-              <ButtonAppBar />
-            </Box>
-            <Box className={styles.FlexMargin}></Box>
-            <PanelGroup
-              className={styles.PanelRow}
-              /*autoSaveId="panel-widths"*/
-              direction="horizontal"
-            >
+        <UiStateContextProvider>
+          <ConfirmProvider>
+            <Box className={styles.Container}>
+              <Box className={styles.AppBar}>
+                <ButtonAppBar />
+              </Box>
               <Box className={styles.FlexMargin}></Box>
-              <Panel
-                className={styles.ResizablePanel}
-                defaultSize={20}
-                minsize={5}
+              <PanelGroup
+                className={styles.PanelRow}
+                /*autoSaveId="panel-widths"*/
+                direction="horizontal"
               >
-                <Box className={`${styles.PanelInner} ${styles.PageListPanel}`}>
-                  <PageList></PageList>
-                </Box>
-              </Panel>
-              <PanelResizeHandle className={styles.ResizeHandleOuter} />
-              <Panel
-                className={styles.ResizablePanel}
-                defaultSize={45}
-                minsize={20}
-              >
-                <Box className={styles.PanelInner}>
-                  <SketchArea></SketchArea>
-                </Box>
-              </Panel>
-              <PanelResizeHandle className={styles.ResizeHandleOuter} />
-              <Panel
-                className={styles.ResizablePanel}
-                defaultSize={35}
-                minsize={20}
-              >
-                <Box className={`${styles.PanelInner} ${styles.EditorPanel}`}>
-                  <Box className={styles.EditorPanelInner}>
-                    <MyTextEditor />
+                <Box className={styles.FlexMargin}></Box>
+                <Panel
+                  className={styles.ResizablePanel}
+                  defaultSize={20}
+                  minsize={5}
+                >
+                  <Box
+                    className={`${styles.PanelInner} ${styles.PageListPanel}`}
+                  >
+                    <PageList></PageList>
                   </Box>
-                </Box>
-              </Panel>
+                </Panel>
+                <PanelResizeHandle className={styles.ResizeHandleOuter} />
+                <Panel
+                  className={styles.ResizablePanel}
+                  defaultSize={45}
+                  minsize={20}
+                >
+                  <Box className={styles.PanelInner}>
+                    <SketchArea></SketchArea>
+                  </Box>
+                </Panel>
+                <PanelResizeHandle className={styles.ResizeHandleOuter} />
+                <Panel
+                  className={styles.ResizablePanel}
+                  defaultSize={35}
+                  minsize={20}
+                >
+                  <Box className={`${styles.PanelInner} ${styles.EditorPanel}`}>
+                    <Box className={styles.EditorPanelInner}>
+                      <MyTextEditor />
+                    </Box>
+                  </Box>
+                </Panel>
+                <Box className={styles.FlexMargin}></Box>
+              </PanelGroup>
               <Box className={styles.FlexMargin}></Box>
-            </PanelGroup>
-            <Box className={styles.FlexMargin}></Box>
-          </Box>
-        </ConfirmProvider>
+            </Box>
+          </ConfirmProvider>
+        </UiStateContextProvider>
       </ProjectDispatchContext.Provider>
     </ProjectContext.Provider>
   );

@@ -1,7 +1,18 @@
-import { createContext } from "react";
+import { createContext, useState } from "react";
 
 export const ProjectContext = createContext(null);
 export const ProjectDispatchContext = createContext(null);
+
+export const UiStateContext = createContext(null);
+
+export const UiStateContextProvider = (props) => {
+  const [elementType, setElementType] = useState("box");
+  return (
+    <UiStateContext.Provider value={{ elementType, setElementType }}>
+      {props.children}
+    </UiStateContext.Provider>
+  );
+};
 
 export const emptyProject = {
   projectName: "Untitled Project",
