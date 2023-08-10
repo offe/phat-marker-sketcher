@@ -63,12 +63,9 @@ export default function MyTextEditor() {
 
     const visualBlocks = [...new Array(blockCount)].map((_, i) => {
       const block = editor.blocks.getBlockByIndex(i);
-      console.log({ block });
-      console.log({ "block.el": block.el });
       const { id, isEmpty, name: type, selected, holder } = block;
       //console.log(editor);
       const actualBlock = blocks.find(({ id: cid }) => cid === id);
-      console.log({ actualBlock });
       const {
         text = undefined,
         level = undefined,
@@ -376,9 +373,9 @@ export default function MyTextEditor() {
     */
     for (const block of visualBlocks) {
       if (block.id === `element-header-${selectedElementId}`) {
-        block.holder.classList.add("highlighted-block");
+        block.holder.firstChild.classList.add("highlighted-block");
       } else {
-        block.holder.classList.remove("highlighted-block");
+        block.holder.firstChild.classList.remove("highlighted-block");
       }
     }
   }, [selectedElementId]);

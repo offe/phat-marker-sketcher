@@ -125,7 +125,6 @@ export const _projectReducer = (project, action) => {
     case "editor-change": {
       //console.log({ where: "ProjectDispatch editor-change" });
       const { visualBlocks } = action;
-      console.log(visualBlocks);
       const ids = [
         "project-name",
         "page-0",
