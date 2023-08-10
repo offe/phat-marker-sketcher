@@ -27,6 +27,59 @@ export const emptyProject = {
   ],
 };
 
+const getGroupedDescriptionBlocks = (visualBlocks, ids) => {
+  const { groupedBlocks } = visualBlocks.reduce(
+    ({ groupedBlocks, currentId }, block, i) => {
+      console.log({ i, blockId: block.id });
+      if (ids.includes(block.id)) {
+        currentId = block.id;
+        console.log("New identified id");
+        console.log({ currentId });
+      } else {
+        groupedBlocks[currentId] = groupedBlocks[currentId] || [];
+        groupedBlocks[currentId].push(visualBlockToDescriptionElement(block));
+        console.log(`Adding block to description to ${currentId}`);
+      }
+      return { groupedBlocks, currentId };
+    },
+    {
+      groupedBlocks: {},
+      currentId: undefined,
+    }
+  );
+  return groupedBlocks;
+};
+
+const visualBlockToDescriptionElement = (visualBlock) => {
+  switch (visualBlock.type) {
+    case "paragraph": {
+      return { type: "text", data: { text: visualBlock.text } };
+    }
+    case "header": {
+      return { type: visualBlock.type, data: { text: visualBlock.text } };
+    }
+    case "list": {
+      return {
+        type: visualBlock.type,
+        data: { style: visualBlock.style, items: visualBlock.items },
+      };
+    }
+    case "table": {
+      return {
+        type: visualBlock.type,
+        data: {
+          withHeadings: visualBlock.withHeadings,
+          content: visualBlock.content,
+        },
+      };
+    }
+    default:
+      console.log({ visualBlock });
+      throw new Error(`Unknown block type: ${visualBlock.type}`);
+      break;
+  }
+};
+
 export const _projectReducer = (project, action) => {
   switch (action.type) {
     case "set-project": {
@@ -60,6 +113,46 @@ export const _projectReducer = (project, action) => {
         pages: [{ ...project.pages[0], elements: action.elements }],
       };
     }
+    case "editor-change": {
+      console.log({ where: "ProjectDispatch editor-change" });
+      const { visualBlocks } = action;
+      console.log(visualBlocks);
+      const ids = [
+        "project-name",
+        "page-0",
+        ...project.pages[0].elements.map(({ id }) => `element-header-${id}`),
+      ];
+      const descriptionBlocks = getGroupedDescriptionBlocks(visualBlocks, ids);
+      console.log({ descriptionBlocks });
+      console.log({ project });
+
+      const projectName =
+        visualBlocks.find(({ id }) => id === "project-name")?.text || "(none)";
+      const firstPageName =
+        visualBlocks.find(({ id }) => id === "page-0")?.text || "(none)";
+
+      return {
+        ...project,
+        projectName,
+        description: descriptionBlocks["project-name"] ?? [],
+        pages: [
+          {
+            ...project.pages[0],
+            pageName: firstPageName,
+            description: descriptionBlocks["page-0"] ?? [],
+            elements: project.pages[0].elements.map((element) => ({
+              ...element,
+              name:
+                visualBlocks.find(
+                  ({ id }) => id === `element-header-${element.id}`
+                )?.text || "",
+              description:
+                descriptionBlocks[`element-header-${element.id}`] ?? [],
+            })),
+          },
+        ],
+      };
+    }
     default:
       break;
   }
@@ -68,6 +161,6 @@ export const _projectReducer = (project, action) => {
 export const projectReducer = (project, action) => {
   //console.log(action);
   const newProject = _projectReducer(project, action);
-  //console.log(newProject);
+  console.log(newProject);
   return newProject;
 };

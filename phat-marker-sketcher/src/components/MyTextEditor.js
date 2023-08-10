@@ -60,9 +60,26 @@ export default function MyTextEditor() {
       const { id, isEmpty, name: type, selected } = block;
       //console.log(editor);
       const actualBlock = blocks.find(({ id: cid }) => cid === id);
-      //console.log({ actualBlock });
-      const { text = undefined, level = undefined } = actualBlock?.data || {};
-      return { id, isEmpty, type, selected, text, level };
+      const {
+        text = undefined,
+        level = undefined,
+        style = undefined,
+        items = undefined,
+        withHeadings = undefined,
+        content = undefined,
+      } = actualBlock?.data || {};
+      return {
+        id,
+        isEmpty,
+        type,
+        selected,
+        text,
+        level,
+        style,
+        items,
+        withHeadings,
+        content,
+      };
     });
     return visualBlocks;
   };
@@ -118,7 +135,7 @@ export default function MyTextEditor() {
             ...elements
               .map(({ id, name: elementName, description }, j) => [
                 {
-                  id, //: `element-${i}-${j}`,
+                  id: `element-header-${id}`, //: `element-${i}-${j}`,
                   type: "header",
                   data: { text: elementName, level: 4 },
                 },
@@ -194,6 +211,11 @@ export default function MyTextEditor() {
           //console.log(content.blocks);
 
           const visualBlocks = getVisualBlocks(editor, content);
+          projectDispatch({ type: "editor-change", visualBlocks });
+          //console.log(visualBlocks);
+          //handleEditorChange(visualBlocks);
+          //console.log({ visualBlocks });
+          //console.log({ elements: project.pages[0].elements });
 
           const recreateIfRemoved = (id, insertParams) => {
             const element = visualBlocks.find(({ id: cid }) => cid === id);
@@ -212,17 +234,6 @@ export default function MyTextEditor() {
             false,
           ]);
 
-          const projectNameHeader = visualBlocks.find(
-            ({ id }) => id === "project-name"
-          );
-          if (projectNameHeader !== undefined) {
-            const newProjectName = projectNameHeader.text || "(none)";
-            projectDispatch({
-              type: "rename-project",
-              projectName: newProjectName,
-            });
-          }
-
           recreateIfRemoved("page-0", [
             "header",
             { text: "Untitled page", level: 2 },
@@ -231,18 +242,6 @@ export default function MyTextEditor() {
             undefined,
             false,
           ]);
-
-          const firstPageNameHeader = visualBlocks.find(
-            ({ id }) => id === "page-0"
-          );
-          if (firstPageNameHeader !== undefined) {
-            const newPageName = firstPageNameHeader.text || "(none)";
-            projectDispatch({
-              type: "rename-page",
-              pageNumber: 0,
-              pageName: newPageName,
-            });
-          }
         },
         tools: {
           paragraph: {
@@ -314,15 +313,16 @@ export default function MyTextEditor() {
     //console.log("trying to log editor");
     //console.log({ editor });
     const visualBlocks = getVisualBlocks(editor);
-    //console.log({ visualBlocks });
 
     // Can't easily see level of empty headers (visible, but not in contents)
     const elementHeaderIds = visualBlocks
-      .filter(({ type, level }) => type === "header")
+      .filter(
+        ({ type, id }) => type === "header" && id.startsWith("element-header")
+      )
       .map(({ id }) => id);
     //console.log({ elementHeaderIds });
     const elementsWithoutHeaders = elements.filter(
-      ({ id }) => !elementHeaderIds.includes(id)
+      ({ id }) => !elementHeaderIds.includes(`element-header-${id}`)
     );
     //console.log({ elementsWithoutHeaders });
     for (const element of elementsWithoutHeaders) {
@@ -336,7 +336,7 @@ export default function MyTextEditor() {
         editor.blocks.getBlocksCount(),
         undefined,
         false,
-        id
+        `element-header-${id}`
       );
       editor.blocks.insert(
         "paragraph",
@@ -345,7 +345,7 @@ export default function MyTextEditor() {
         editor.blocks.getBlocksCount(),
         undefined,
         false,
-        id
+        undefined
       );
     }
   }, [project]);
