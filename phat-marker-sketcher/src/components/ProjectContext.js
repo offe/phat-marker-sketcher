@@ -50,7 +50,7 @@ export const _projectReducer = (project, action) => {
           pages: [{ ...project.pages[0], pageName: action.pageName }],
         };
       } else {
-        console.log("No rename needed");
+        //console.log("No rename needed");
         return project;
       }
     }
@@ -66,8 +66,8 @@ export const _projectReducer = (project, action) => {
 };
 
 export const projectReducer = (project, action) => {
-  console.log(action);
+  //console.log(action);
   const newProject = _projectReducer(project, action);
-  console.log(newProject);
+  //console.log(newProject);
   return newProject;
 };

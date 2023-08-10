@@ -10,7 +10,7 @@ import { ProjectContext, ProjectDispatchContext } from "./ProjectContext";
 class MyHeader extends Header {
   // Prevent header tune options to change header level
   renderSettings() {
-    console.log("renderSettings called");
+    //console.log("renderSettings called");
     return [];
   }
   // Replace placeholder with level specific ones
@@ -53,11 +53,10 @@ export default function MyTextEditor() {
   const getVisualBlocks = (editor, content) => {
     const blockCount = editor.blocks.getBlocksCount();
     const blocks = content ? content.blocks : editor.configuration.data.blocks;
-    console.log({ blocks });
+    //console.log({ blocks });
 
     const visualBlocks = [...new Array(blockCount)].map((_, i) => {
       const block = editor.blocks.getBlockByIndex(i);
-      console.log(block);
       const { id, isEmpty, name: type, selected } = block;
       //console.log(editor);
       const actualBlock = blocks.find(({ id: cid }) => cid === id);
@@ -187,21 +186,19 @@ export default function MyTextEditor() {
         onChange: async () => {
           const editor = ejInstance.current;
           if (!editor) {
-            console.log("editor not ready in onChange");
+            //console.log("editor not ready in onChange");
             return;
           }
           const content = await editor.saver.save();
 
-          console.log(content.blocks);
+          //console.log(content.blocks);
 
           const visualBlocks = getVisualBlocks(editor, content);
 
           const recreateIfRemoved = (id, insertParams) => {
             const element = visualBlocks.find(({ id: cid }) => cid === id);
             if (element === undefined) {
-              console.log(
-                `The block with id ${id} is missing, recreating it! `
-              );
+              //console.log( `The block with id ${id} is missing, recreating it! `);
               editor.blocks.insert(...insertParams, id);
             }
           };
@@ -280,6 +277,7 @@ export default function MyTextEditor() {
           },
         },
         defaultBlock: "paragraph",
+        logLevel: "ERROR",
       });
     };
     if (ejInstance.current === null) {
@@ -297,7 +295,7 @@ export default function MyTextEditor() {
   useEffect(() => {
     const editor = ejInstance.current;
     if (!editor) {
-      console.log("editor not ready yet");
+      //console.log("editor not ready yet");
       return;
     }
     if (project.projectId !== projectId) {
@@ -307,28 +305,30 @@ export default function MyTextEditor() {
     }
     const { elements } = project.pages[0];
     //console.log("MyTextEditor", elements.length);
+    /*
     console.log("All elements on first page: ");
     for (const element of elements) {
       console.log(element);
     }
+    */
     //console.log("trying to log editor");
     //console.log({ editor });
     const visualBlocks = getVisualBlocks(editor);
-    console.log({ visualBlocks });
+    //console.log({ visualBlocks });
 
     // Can't easily see level of empty headers (visible, but not in contents)
     const elementHeaderIds = visualBlocks
       .filter(({ type, level }) => type === "header")
       .map(({ id }) => id);
-    console.log({ elementHeaderIds });
+    //console.log({ elementHeaderIds });
     const elementsWithoutHeaders = elements.filter(
       ({ id }) => !elementHeaderIds.includes(id)
     );
-    console.log({ elementsWithoutHeaders });
+    //console.log({ elementsWithoutHeaders });
     for (const element of elementsWithoutHeaders) {
       const { id } = element;
-      console.log({ id, editor });
-      console.log({ blocks: editor.blocks });
+      //console.log({ id, editor });
+      //console.log({ blocks: editor.blocks });
       editor.blocks.insert(
         "header",
         { text: "", level: 4 },

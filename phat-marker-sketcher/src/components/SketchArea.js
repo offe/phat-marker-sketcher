@@ -12,8 +12,8 @@ const nextAvailableId = (thingsWithIds) => {
   const allIds = thingsWithIds.map(({ id }) => parseInt(id) || 0);
   const highest = Math.max(...[0, ...allIds]);
   const next = highest + 1;
-  console.log({ where: "nextAvailableId", allIds });
-  console.log(`nextAvailableId returns: ${next}`);
+  //console.log({ where: "nextAvailableId", allIds });
+  //console.log(`nextAvailableId returns: ${next}`);
   return `${next}`;
 };
 
@@ -25,7 +25,7 @@ export default function SketchArea() {
   const [showsGrid, setShowsGrid] = useState(true);
   const { elementType, setElementType } = useContext(UiStateContext);
   const setMainState = (newState) => {
-    console.log(`New mainState: ${newState}`);
+    console.log(`mainState change: ${mainState} -> ${newState}`);
     _setMainState(newState);
   };
 
@@ -459,8 +459,8 @@ export default function SketchArea() {
         mouseEvent,
         canvasCoordinates,
       });*/
-      console.log(mouseEvent);
-      console.log("mousedown");
+      //console.log(mouseEvent);
+      //console.log("mousedown");
       setMouseStartCoordinates(canvasCoordinates);
       switch (mainState) {
         case "idle":
@@ -490,7 +490,7 @@ export default function SketchArea() {
         mouseEvent,
         canvasCoordinates,
       });*/
-      console.log("mouseup");
+      //console.log("mouseup");
 
       switch (mainState) {
         case "started":
@@ -529,7 +529,7 @@ export default function SketchArea() {
       });*/
       switch (keyEvent.code) {
         case "KeyG": {
-          console.log("KeyG");
+          //console.log("KeyG");
           setShowsGrid(!showsGrid);
           break;
         }
@@ -540,14 +540,14 @@ export default function SketchArea() {
         case "idle":
           switch (keyEvent.code) {
             case "Tab":
-              console.log("Tab in idle");
+              //console.log("Tab in idle");
               if (elements.length > 0) {
                 setSelectedElementId(elements[0].id);
                 setMainState("selected");
               }
               break;
             case "KeyA": {
-              console.log("KeyA");
+              //console.log("KeyA");
               setElements([
                 ...elements,
                 {
@@ -573,7 +573,7 @@ export default function SketchArea() {
               setMainState("idle");
               break;
             case "Tab":
-              console.log("Tab in selected");
+              //console.log("Tab in selected");
               const currentIndex = elements.findIndex(
                 ({ id }) => id === selectedElementId
               );

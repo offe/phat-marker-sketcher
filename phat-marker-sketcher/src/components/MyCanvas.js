@@ -85,7 +85,7 @@ const MyCanvas = (props) => {
     //console.log({ box: resizeEntry.devicePixelContentBoxSize[0] });
     const height = resizeEntry.devicePixelContentBoxSize[0].blockSize;
     const width = resizeEntry.devicePixelContentBoxSize[0].inlineSize;
-    console.log("onResize callback");
+    //console.log("onResize callback");
     //const width = target.clientWidth;
     //const height = target.clientHeight;
 

@@ -57,6 +57,7 @@ export default function PageList() {
             <RadioGroup value={elementType} onChange={handleElementTypeChange}>
               {elementTypes.map(({ id, name }, i) => (
                 <FormControlLabel
+                  key={id}
                   value={id}
                   control={<Radio size="small" />}
                   label={name}
