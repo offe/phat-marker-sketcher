@@ -7,8 +7,16 @@ export const UiStateContext = createContext(null);
 
 export const UiStateContextProvider = (props) => {
   const [elementType, setElementType] = useState("box");
+  const [selectedElementId, setSelectedElementId] = useState(undefined);
   return (
-    <UiStateContext.Provider value={{ elementType, setElementType }}>
+    <UiStateContext.Provider
+      value={{
+        elementType,
+        setElementType,
+        selectedElementId,
+        setSelectedElementId,
+      }}
+    >
       {props.children}
     </UiStateContext.Provider>
   );
@@ -30,15 +38,16 @@ export const emptyProject = {
 const getGroupedDescriptionBlocks = (visualBlocks, ids) => {
   const { groupedBlocks } = visualBlocks.reduce(
     ({ groupedBlocks, currentId }, block, i) => {
-      console.log({ i, blockId: block.id });
+      //console.log({ i, blockId: block.id });
       if (ids.includes(block.id)) {
         currentId = block.id;
-        console.log("New identified id");
-        console.log({ currentId });
+        //console.log("New identified id");
+        //console.log({ currentId });
       } else {
-        groupedBlocks[currentId] = groupedBlocks[currentId] || [];
-        groupedBlocks[currentId].push(visualBlockToDescriptionElement(block));
-        console.log(`Adding block to description to ${currentId}`);
+        (groupedBlocks[currentId] ??= []).push(
+          visualBlockToDescriptionElement(block)
+        );
+        //console.log(`Adding block to description to ${currentId}`);
       }
       return { groupedBlocks, currentId };
     },
@@ -74,7 +83,7 @@ const visualBlockToDescriptionElement = (visualBlock) => {
       };
     }
     default:
-      console.log({ visualBlock });
+      //console.log({ visualBlock });
       throw new Error(`Unknown block type: ${visualBlock.type}`);
       break;
   }
@@ -114,7 +123,7 @@ export const _projectReducer = (project, action) => {
       };
     }
     case "editor-change": {
-      console.log({ where: "ProjectDispatch editor-change" });
+      //console.log({ where: "ProjectDispatch editor-change" });
       const { visualBlocks } = action;
       console.log(visualBlocks);
       const ids = [
@@ -123,8 +132,8 @@ export const _projectReducer = (project, action) => {
         ...project.pages[0].elements.map(({ id }) => `element-header-${id}`),
       ];
       const descriptionBlocks = getGroupedDescriptionBlocks(visualBlocks, ids);
-      console.log({ descriptionBlocks });
-      console.log({ project });
+      //console.log({ descriptionBlocks });
+      //console.log({ project });
 
       const projectName =
         visualBlocks.find(({ id }) => id === "project-name")?.text || "(none)";
@@ -161,6 +170,6 @@ export const _projectReducer = (project, action) => {
 export const projectReducer = (project, action) => {
   //console.log(action);
   const newProject = _projectReducer(project, action);
-  console.log(newProject);
+  //console.log(newProject);
   return newProject;
 };

@@ -5,7 +5,11 @@ import Header from "@editorjs/header";
 import Paragraph from "@editorjs/paragraph";
 import NestedList from "@editorjs/nested-list";
 import Table from "@editorjs/table";
-import { ProjectContext, ProjectDispatchContext } from "./ProjectContext";
+import {
+  ProjectContext,
+  ProjectDispatchContext,
+  UiStateContext,
+} from "./ProjectContext";
 
 class MyHeader extends Header {
   // Prevent header tune options to change header level
@@ -48,6 +52,8 @@ class MyParagraph extends Paragraph {
 export default function MyTextEditor() {
   const project = useContext(ProjectContext);
   const projectDispatch = useContext(ProjectDispatchContext);
+  const { selectedElementId, setSelectedElementId } =
+    useContext(UiStateContext);
   const ejInstance = useRef();
 
   const getVisualBlocks = (editor, content) => {
@@ -57,9 +63,12 @@ export default function MyTextEditor() {
 
     const visualBlocks = [...new Array(blockCount)].map((_, i) => {
       const block = editor.blocks.getBlockByIndex(i);
-      const { id, isEmpty, name: type, selected } = block;
+      console.log({ block });
+      console.log({ "block.el": block.el });
+      const { id, isEmpty, name: type, selected, holder } = block;
       //console.log(editor);
       const actualBlock = blocks.find(({ id: cid }) => cid === id);
+      console.log({ actualBlock });
       const {
         text = undefined,
         level = undefined,
@@ -70,6 +79,7 @@ export default function MyTextEditor() {
       } = actualBlock?.data || {};
       return {
         id,
+        holder,
         isEmpty,
         type,
         selected,
@@ -349,6 +359,29 @@ export default function MyTextEditor() {
       );
     }
   }, [project]);
+  useEffect(() => {
+    const editor = ejInstance.current;
+    if (!editor) {
+      //console.log("editor not ready yet");
+      return;
+    }
+    const visualBlocks = getVisualBlocks(editor);
+    /*
+    const matchingHeader = visualBlocks.find(
+      ({ id }) => id === `element-header-${selectedElementId}`
+    );
+    if (matchingHeader !== undefined) {
+      matchingHeader.holder.classList.add("highlighted-block");
+    }
+    */
+    for (const block of visualBlocks) {
+      if (block.id === `element-header-${selectedElementId}`) {
+        block.holder.classList.add("highlighted-block");
+      } else {
+        block.holder.classList.remove("highlighted-block");
+      }
+    }
+  }, [selectedElementId]);
 
   return <div id="editorjs"></div>;
 }

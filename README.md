@@ -91,15 +91,13 @@ The undo feature is central in these types of apps, so all interactions are mode
 
 ## Todo
 
-- Sync element names (header) and element descriptions from editor into project
-
-  - Take all blocks after the element's header until another non level 5 header and put them into the description
-
-- Select / indicate the blocks of the selected element
 - Indicate the element of the active block (go up in the blocks until an element header is found, stop at page headers)
+
 - Make it possible to add new pages
 - Add new actions (add-element) to project reducer (everything is using set-elements)
 - Have a look at undo/redo
+- iPad support
+- Change paper size
 
 - Have a look on how often stuff is redrawn for no reason
 - Expand mainState into dict

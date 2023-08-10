@@ -23,7 +23,12 @@ export default function SketchArea() {
   const { elements } = project.pages[0];
   const [mainState, _setMainState] = useState("idle");
   const [showsGrid, setShowsGrid] = useState(true);
-  const { elementType, setElementType } = useContext(UiStateContext);
+  const {
+    elementType,
+    setElementType,
+    selectedElementId,
+    setSelectedElementId,
+  } = useContext(UiStateContext);
   const setMainState = (newState) => {
     console.log(`mainState change: ${mainState} -> ${newState}`);
     _setMainState(newState);
@@ -36,7 +41,7 @@ export default function SketchArea() {
     });
   };
 
-  const [selectedElementId, setSelectedElementId] = useState(undefined);
+  //const [selectedElementId, setSelectedElementId] = useState(undefined);
   const [mouseCoordinates, setMouseCoordinates] = useState({
     x: 100,
     y: 200,
@@ -346,6 +351,7 @@ export default function SketchArea() {
           //console.log({ distance });
           if (distance > 10) {
             setMainState("drawing");
+            setSelectedElementId(undefined);
             const { x: sx, y: sy } = mouseToGridCoordinates(
               mouseStartCoordinates
             );
