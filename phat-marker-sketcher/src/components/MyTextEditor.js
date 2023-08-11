@@ -11,6 +11,43 @@ import {
   UiStateContext,
 } from "./ProjectContext";
 
+// https://blog.ag-grid.com/avoiding-react-18-double-mount/
+export const useEffectOnce = (effect) => {
+  const effectFn = useRef(effect);
+  const destroyFn = useRef();
+  const effectCalled = useRef(false);
+  const rendered = useRef(false);
+  const [, setVal] = useState(0);
+
+  if (effectCalled.current) {
+    rendered.current = true;
+  }
+
+  useEffect(() => {
+    // only execute the effect first time around
+    if (!effectCalled.current) {
+      destroyFn.current = effectFn.current();
+      effectCalled.current = true;
+    }
+
+    // this forces one render after the effect is run
+    setVal((val) => val + 1);
+
+    return () => {
+      // if the comp didn't render since the useEffect was called,
+      // we know it's the dummy React cycle
+      if (!rendered.current) {
+        return;
+      }
+
+      // otherwise this is not a dummy destroy, so call the destroy func
+      if (destroyFn.current) {
+        destroyFn.current();
+      }
+    };
+  }, []);
+};
+
 class MyHeader extends Header {
   // Prevent header tune options to change header level
   renderSettings() {
@@ -151,41 +188,6 @@ export default function MyTextEditor() {
               .flat(),
           ])
           .flat(),
-        /*{
-          type: "header",
-          data: {
-            text: "Main Variant",
-            level: 3,
-          },
-        },
-        {
-          id: "1",
-          type: "header",
-          data: {
-            text: "The first box",
-            level: 4,
-          },
-        },
-        {
-          type: "paragraph",
-          data: {
-            text: "This is just a nice little frame",
-          },
-        },
-        {
-          type: "header",
-          data: {
-            text: "Another element",
-            level: 4,
-          },
-        },
-        {
-          type: "paragraph",
-          data: {
-            text: "And why it's here",
-          },
-        },
-        */
       ],
     };
   };
@@ -198,7 +200,8 @@ export default function MyTextEditor() {
   );
 
   const [projectId, setProjectId] = useState(undefined);
-  useEffect(() => {
+  useEffectOnce(() => {
+    //console.log("In MyTextEditor init useEffect");
     const initEditor = () => {
       const editor = new EditorJS({
         holder: "editorjs",
@@ -286,6 +289,7 @@ export default function MyTextEditor() {
         logLevel: "ERROR",
       });
     };
+
     if (ejInstance.current === null) {
       //console.log(`Initializing editor`);
       initEditor();
@@ -296,7 +300,7 @@ export default function MyTextEditor() {
       ejInstance.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectDispatch]);
+  }, []);
 
   useEffect(() => {
     const editor = ejInstance.current;
@@ -365,17 +369,10 @@ export default function MyTextEditor() {
       return;
     }
     const visualBlocks = getVisualBlocks(editor);
-    /*
-    const matchingHeader = visualBlocks.find(
-      ({ id }) => id === `element-header-${selectedElementId}`
-    );
-    if (matchingHeader !== undefined) {
-      matchingHeader.holder.classList.add("highlighted-block");
-    }
-    */
     for (const block of visualBlocks) {
       if (block.id === `element-header-${selectedElementId}`) {
         block.holder.firstChild.classList.add("highlighted-block");
+        block.holder.scrollIntoView({ behavior: "smooth" });
       } else {
         block.holder.firstChild.classList.remove("highlighted-block");
       }
