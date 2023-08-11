@@ -27,7 +27,9 @@ jobs:
           cache-dependency-path: phat-marker-sketcher/package-lock.json
 
       - name: Install
-        run: npm ci
+        run: |
+          cd phat-marker-sketcher
+          npm ci
 
       - name: Compile
         run: npm run build
