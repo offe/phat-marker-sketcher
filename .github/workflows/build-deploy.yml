@@ -1,25 +1,56 @@
-name: Build and Deploy
+name: Build application and publish the artifects
+
 on:
   push:
-    branches:
-      - main
+    branches: ["main"]
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-  build-and-deploy:
-    concurrency: ci-${{ github.ref }} # Recommended if you intend to make multiple deployments in quick succession.
+  build:
+    name: Build
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v3
+      - name: Move into subproject
+        run: cd phat-marker-sketcher
+      - uses: actions/checkout@v3
 
-      - name: Install and Build 🔧
-        run: |
-          cd phat-marker-sketcher
-          npm ci
-          npm run build
-
-      - name: Deploy to github pages
-        uses: actions/deploy-pages@v2
+      - name: Setup node
+        uses: actions/setup-node@v3
         with:
-          folder: phat-marker-sketcher/build # The folder the action should deploy
+          node-version: 18.14.2
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Compile
+        run: npm run build
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          name: github-pages
+          path: build/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-assets
+          path: build/
+
+  deploy:
+    name: Deploy pages
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
