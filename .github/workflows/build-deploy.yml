@@ -24,6 +24,12 @@ jobs:
         run: pwd
       - name: What's here
         run: ls
+      - name: Move into subproject 2
+        run: cd phat-marker-sketcher
+      - name: Where am I 2
+        run: pwd
+      - name: What's here 2
+        run: ls
 
       - name: Setup node
         uses: actions/setup-node@v3
