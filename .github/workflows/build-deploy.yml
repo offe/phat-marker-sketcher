@@ -22,6 +22,8 @@ jobs:
         run: cd phat-marker-sketcher
       - name: Where am I
         run: pwd
+      - name: What's here
+        run: ls
 
       - name: Setup node
         uses: actions/setup-node@v3
