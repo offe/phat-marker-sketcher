@@ -21,10 +21,10 @@ jobs:
 
       - name: Setup node
         uses: actions/setup-node@v3
-        working-directory: phat-marker-sketcher
         with:
           node-version: 20.4.0
           cache: npm
+          cache-dependency-path: phat-marker-sketcher/package-lock.json
 
       - name: Install
         run: npm ci
