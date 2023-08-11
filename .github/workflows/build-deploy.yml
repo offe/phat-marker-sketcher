@@ -32,17 +32,19 @@ jobs:
           npm ci
 
       - name: Compile
-        run: npm run build
+        run: |
+          cd phat-marker-sketcher
+          npm run build
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v1
         with:
           name: github-pages
-          path: build/
+          path: phat-marker-sketcher/build/
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: frontend-assets
-          path: build/
+          path: phat-marker-sketcher/build/
 
   deploy:
     name: Deploy pages
