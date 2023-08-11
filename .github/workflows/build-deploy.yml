@@ -19,7 +19,7 @@ jobs:
           npm ci
           npm run build
 
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Deploy to github pages
+        uses: actions/deploy-pages@v2
         with:
-          folder: build # The folder the action should deploy
+          folder: phat-marker-sketcher/build # The folder the action should deploy
