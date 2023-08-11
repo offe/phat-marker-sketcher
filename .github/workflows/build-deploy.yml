@@ -17,9 +17,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v3
       - name: Move into subproject
         run: cd phat-marker-sketcher
-      - uses: actions/checkout@v3
 
       - name: Setup node
         uses: actions/setup-node@v3
