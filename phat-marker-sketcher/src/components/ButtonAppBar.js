@@ -5,7 +5,7 @@ import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Button from "@mui/material/Button";
 import GitHubIcon from "@mui/icons-material/GitHub";
-import { IconButton, Typography } from "@mui/material";
+import { IconButton, Typography, useMediaQuery } from "@mui/material";
 import {
   ProjectContext,
   ProjectDispatchContext,
@@ -13,9 +13,13 @@ import {
 } from "./ProjectContext";
 import { downloadAsTextFile } from "../utils/downloadAsFile";
 import { useConfirm } from "material-ui-confirm";
+import { useTheme } from "@emotion/react";
 
 export default function ButtonAppBar() {
   const confirm = useConfirm();
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const isReallySmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const project = useContext(ProjectContext);
   const projectDispatch = useContext(ProjectDispatchContext);
@@ -154,13 +158,13 @@ export default function ButtonAppBar() {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" sx={{ my: 2, mr: 3 }}>
-            🖊️ Phat Marker Sketcher
+            {isReallySmallScreen ? "🖊️" : "🖊️ P️hat Marker Sketcher"}
           </Typography>
           <Button sx={{ color: "white" }} onClick={startNewProject}>
-            New project
+            {isSmallScreen ? "New" : "New project"}
           </Button>
           <Button sx={{ color: "white" }} onClick={downloadProjectAsJson}>
-            Save project
+            {isSmallScreen ? "Save" : "Save project"}
           </Button>
           <Button
             sx={{
@@ -176,7 +180,7 @@ export default function ButtonAppBar() {
             onDragLeave={handleProjectDragLeave}
             draggable={false}
           >
-            Load project
+            {isSmallScreen ? "Load" : "Load project"}
           </Button>
           <Box sx={{ flexGrow: 1 }} /> {/* Flexible spacer */}
           <a

@@ -80,11 +80,45 @@ const MyCanvas = (props) => {
   const canvasRef = useRef(null);
   useCanvas(draw, size, canvasRef);
 
+  useEffect(() => {
+    document.addEventListener(
+      "mousewheel",
+      (e) => {
+        if (e.target === canvasRef.current) {
+          e.preventDefault();
+          //canvasApp.zoom(/*do smth with e*/)
+          console.log("not scrolling");
+        } else {
+          console.log("scrolling");
+        }
+      },
+      { passive: false }
+    );
+    document.addEventListener(
+      "wheel",
+      (e) => {
+        if (e.target === canvasRef.current) {
+          e.preventDefault();
+          //canvasApp.zoom(/*do smth with e*/)
+          console.log("not scrolling");
+        } else {
+          console.log("scrolling");
+        }
+      },
+      { passive: false }
+    );
+  }, []);
+
   const onResize = useCallback((target, resizeEntry) => {
     //console.log({ resizeEntry });
     //console.log({ box: resizeEntry.devicePixelContentBoxSize[0] });
-    const height = resizeEntry.devicePixelContentBoxSize[0].blockSize;
-    const width = resizeEntry.devicePixelContentBoxSize[0].inlineSize;
+
+    //console.log(resizeEntry.devicePixelContentBoxSize[0]);
+    //const height = resizeEntry.devicePixelContentBoxSize[0].blockSize;
+    //const width = resizeEntry.devicePixelContentBoxSize[0].inlineSize;
+    const width = resizeEntry.contentRect.width * window.devicePixelRatio;
+    const height = resizeEntry.contentRect.height * window.devicePixelRatio;
+
     //console.log("onResize callback");
     //const width = target.clientWidth;
     //const height = target.clientHeight;
@@ -116,6 +150,62 @@ const MyCanvas = (props) => {
     event.preventDefault();
   };
 
+  function touchHandler(event) {
+    var touches = event.changedTouches,
+      first = touches[0],
+      type = "";
+    switch (event.type) {
+      case "touchstart":
+        type = "mousedown";
+        break;
+      case "touchmove":
+        type = "mousemove";
+        break;
+      case "touchend":
+        type = "mouseup";
+        break;
+      case "touchcancel":
+        type = "mouseout";
+        break;
+      default:
+        return;
+    }
+
+    // initMouseEvent(type, canBubble, cancelable, view, clickCount,
+    //                screenX, screenY, clientX, clientY, ctrlKey,
+    //                altKey, shiftKey, metaKey, button, relatedTarget);
+
+    var simulatedEvent = new MouseEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+      screenX: first.screenX,
+      screenY: first.screenY,
+      clientX: first.clientX,
+      clientY: first.clientY,
+      button: 0,
+    });
+
+    first.target.dispatchEvent(simulatedEvent);
+    event.preventDefault();
+  }
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    canvas.addEventListener("touchstart", touchHandler, { passive: false });
+    canvas.addEventListener("touchmove", touchHandler, { passive: false });
+    canvas.addEventListener("touchend", touchHandler, { passive: false });
+    canvas.addEventListener("touchcancel", touchHandler, { passive: false });
+
+    // cleanup this component
+    return () => {
+      canvas.removeEventListener("touchstart", touchHandler);
+      canvas.removeEventListener("touchmove", touchHandler);
+      canvas.removeEventListener("touchend", touchHandler);
+      canvas.removeEventListener("touchcancel", touchHandler);
+    };
+  }, []);
+
   return (
     <canvas
       ref={canvasRef}
@@ -134,6 +224,10 @@ const MyCanvas = (props) => {
       onMouseOut={(event) => {
         handleMouseEvent("mouseout", event);
       }}
+      //onTouchStart={touchHandler}
+      //onTouchMove={touchHandler}
+      //onTouchEnd={touchHandler}
+      //onTouchCancel={touchHandler}
       tabIndex={0}
       onKeyUp={(event) => handleKeyEvent("keyup", event)}
       onKeyDown={(event) => handleKeyEvent("keydown", event)}

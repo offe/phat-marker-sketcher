@@ -9,6 +9,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+canvas {
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
 canvas:focus {
   outline: none;
 }

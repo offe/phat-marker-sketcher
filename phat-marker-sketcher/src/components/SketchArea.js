@@ -17,6 +17,45 @@ const nextAvailableId = (thingsWithIds) => {
   return `${next}`;
 };
 
+const getHandles = (left, top, right, bottom) => {
+  return [
+    { name: "top-left", y: top, x: left },
+    { name: "top-right", y: top, x: right },
+    { name: "bottom-right", y: bottom, x: right },
+    { name: "bottom-left", y: bottom, x: left },
+    { name: "top", y: top, x: (left + right) / 2, w: 2 },
+    { name: "right", y: (top + bottom) / 2, x: right, h: 2 },
+    { name: "bottom", y: bottom, x: (right + left) / 2, w: 2 },
+    { name: "left", y: (top + bottom) / 2, x: left, h: 2 },
+  ];
+};
+
+const getHandleRect = ({
+  handleName,
+  handles,
+  elementHeight,
+  elementWidth,
+  handleSize,
+  gridSize,
+}) => {
+  const {
+    x,
+    y,
+    h: handleSizeY = 1,
+    w: handleSizeX = 1,
+  } = handles.find(({ name }) => name === handleName);
+  const correctedHandleHeight =
+    elementHeight === 1 ? Math.min(handleSizeY, 1.5) : handleSizeY;
+  const correctedHandleWidth =
+    elementWidth === 1 ? Math.min(handleSizeX, 1.5) : handleSizeX;
+  return [
+    gridSize * x - correctedHandleWidth * (handleSize / 2),
+    gridSize * y - correctedHandleHeight * (handleSize / 2),
+    handleSize * correctedHandleWidth,
+    handleSize * correctedHandleHeight,
+  ];
+};
+
 export default function SketchArea() {
   const project = useContext(ProjectContext);
   const projectDispatch = useContext(ProjectDispatchContext);
@@ -51,7 +90,6 @@ export default function SketchArea() {
     y: undefined,
   });
   const [drawingElementId, setDrawingElementId] = useState(undefined);
-  const [indicatedHandleName, setIndicatedHandleName] = useState(undefined);
   const [resizingHandleName, setResizingHandleName] = useState(undefined);
   const [dragStartCoordinates, setDragStartCoordinates] = useState({
     x: undefined,
@@ -63,6 +101,16 @@ export default function SketchArea() {
   const columns = 12;
   const gutterRatio = 4;
   const gridSize = pageWidth / columns;
+  const originX = 1.5 * gridSize;
+  const originY = 1.5 * gridSize;
+  function isTouchDevice() {
+    return (
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0
+    );
+  }
+  const handleSize = isTouchDevice ? 20 : 10;
 
   useEffect(() => {
     const currentElement = elements.find(({ id }) => id === selectedElementId);
@@ -83,7 +131,6 @@ export default function SketchArea() {
 
   const draw = (ctx, frameCount) => {
     //console.log("draw called");
-    const handleSize = 10;
     const handleColor = "#1976d2";
     const screenColor = "#ffffff";
     const outsideColor = "#e8e8f0";
@@ -97,8 +144,6 @@ export default function SketchArea() {
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.save();
 
-    const originX = 1.5 * gridSize;
-    const originY = 1.5 * gridSize;
     ctx.translate(originX, originY);
     ctx.fillStyle = screenColor;
     ctx.fillRect(0, 0, pageWidth, pageHeight);
@@ -183,18 +228,8 @@ export default function SketchArea() {
       );
       ctx.stroke();
 
-      setIndicatedHandleName(undefined);
       // Corner and edge handles
-      const handles = [
-        { name: "top-left", y: top, x: left },
-        { name: "top-right", y: top, x: right },
-        { name: "bottom-right", y: bottom, x: right },
-        { name: "bottom-left", y: bottom, x: left },
-        { name: "top", y: top, x: (left + right) / 2, w: 2 },
-        { name: "right", y: (top + bottom) / 2, x: right, h: 2 },
-        { name: "bottom", y: bottom, x: (right + left) / 2, w: 2 },
-        { name: "left", y: (top + bottom) / 2, x: left, h: 2 },
-      ];
+      const handles = getHandles(left, top, right, bottom);
 
       function drawHandle(
         handleName,
@@ -210,34 +245,35 @@ export default function SketchArea() {
         handleName
         */
       ) {
-        const {
-          x,
-          y,
-          h: handleSizeY = 1,
-          w: handleSizeX = 1,
-        } = handles.find(({ name }) => name === handleName);
-        const correctedHandleHeight =
-          elementHeight === 1 ? Math.min(handleSizeY, 1.5) : handleSizeY;
-        const correctedHandleWidth =
-          elementWidth === 1 ? Math.min(handleSizeX, 1.5) : handleSizeX;
-        ctx.beginPath();
-        const [handleLeft, handleTop, handleWidth, handleHeight] = [
-          gridSize * x - correctedHandleWidth * (handleSize / 2),
-          gridSize * y - correctedHandleHeight * (handleSize / 2),
-          handleSize * correctedHandleWidth,
-          handleSize * correctedHandleHeight,
-        ];
-        ctx.roundRect(handleLeft, handleTop, handleWidth, handleHeight, 6);
+        const [handleLeft, handleTop, handleWidth, handleHeight] =
+          getHandleRect({
+            handleName,
+            handles,
+            elementHeight,
+            elementWidth,
+            handleSize,
+            gridSize,
+          });
+
         const handleDistance = distanceToRectangle(
           [handleLeft, handleTop, handleWidth, handleHeight],
           { x: mouseCoordinates.x - originX, y: mouseCoordinates.y - originY }
         );
+
         if (handleDistance === 0 || handleName === resizingHandleName) {
           ctx.fillStyle = handleColor;
-          setIndicatedHandleName(handleName);
         } else {
           ctx.fillStyle = screenColor;
         }
+
+        ctx.beginPath();
+        ctx.roundRect(
+          handleLeft,
+          handleTop,
+          handleWidth,
+          handleHeight,
+          handleSize / 2
+        );
         ctx.fill();
         ctx.lineWidth = 2;
         ctx.strokeStyle = handleColor;
@@ -475,16 +511,57 @@ export default function SketchArea() {
           setMainState("started");
           break;
         case "selected":
-          if (indicatedHandleName !== undefined) {
-            setMainState("resizing");
-            setResizingHandleName(indicatedHandleName);
-          } else if (elementAt(canvasCoordinates)?.id === selectedElementId) {
-            setMainState("dragging");
-            setDragStartCoordinates(
-              elements.find(({ id }) => id === selectedElementId).rectangle
+          {
+            const selectedElement = elements.find(
+              ({ id }) => id === selectedElementId
             );
-          } else {
-            setMainState("started");
+            const [left, top, width, height] = selectedElement.rectangle;
+            const handles = getHandles(left, top, left + width, top + height);
+            const handleRects = handles.map((handle) => ({
+              name: handle.name,
+              rectangle: getHandleRect({
+                handleName: handle.name,
+                handles,
+                elementHeight: height,
+                elementWidth: width,
+                gridSize,
+                handleSize,
+              }),
+            }));
+            //console.log({ handleRects });
+            const distances = handleRects.map(({ name, rectangle }) => ({
+              name,
+              distance: distanceToRectangle(rectangle, {
+                x: canvasCoordinates.x - originX,
+                y: canvasCoordinates.y - originY,
+              }),
+            }));
+            console.log({ distances });
+            const foundHandleName = distances.find(
+              ({ distance }) => distance === 0
+            )?.name;
+            /*
+            const handleDistance = distanceToRectangle(
+              [handleLeft, handleTop, handleWidth, handleHeight],
+              {
+                x: mouseCoordinates.x - originX,
+                y: mouseCoordinates.y - originY,
+              }
+            );
+            */
+            //if (indicatedHandleName !== undefined) {
+            //setIndicatedHandleName(foundHandleName);
+            if (foundHandleName !== undefined) {
+              setMainState("resizing");
+              setResizingHandleName(foundHandleName);
+            } else if (elementAt(canvasCoordinates)?.id === selectedElementId) {
+              setMainState("dragging");
+              setDragStartCoordinates(
+                elements.find(({ id }) => id === selectedElementId).rectangle
+              );
+            } else {
+              setMainState("started");
+            }
           }
           break;
         default:
