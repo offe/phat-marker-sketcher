@@ -52,9 +52,9 @@ class MyParagraph extends Paragraph {
 export default function MyTextEditor() {
   const project = useContext(ProjectContext);
   const projectDispatch = useContext(ProjectDispatchContext);
-  const { selectedElementId, setSelectedElementId } =
+  const { selectedElementId /*setSelectedElementId*/ } =
     useContext(UiStateContext);
-  const ejInstance = useRef();
+  const ejInstance = useRef(null);
 
   const getVisualBlocks = (editor, content) => {
     const blockCount = editor.blocks.getBlocksCount();
@@ -209,7 +209,7 @@ export default function MyTextEditor() {
         data: INITIAL_EDITOR_DATA,
         onChange: async () => {
           const editor = ejInstance.current;
-          if (!editor) {
+          if (editor === null) {
             //console.log("editor not ready in onChange");
             return;
           }
@@ -287,7 +287,7 @@ export default function MyTextEditor() {
       });
     };
     if (ejInstance.current === null) {
-      console.log(`Initializing editor`);
+      //console.log(`Initializing editor`);
       initEditor();
     }
 
@@ -355,7 +355,9 @@ export default function MyTextEditor() {
         undefined
       );
     }
+    // eslint-disable-next-line
   }, [project]);
+
   useEffect(() => {
     const editor = ejInstance.current;
     if (!editor) {

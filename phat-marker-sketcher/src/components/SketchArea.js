@@ -70,6 +70,7 @@ export default function SketchArea() {
       currentElement.type = elementType;
       setElements([...elements]);
     }
+    // eslint-disable-next-line
   }, [elementType]);
 
   useEffect(() => {
@@ -77,6 +78,7 @@ export default function SketchArea() {
     if (currentElement !== undefined) {
       setElementType(currentElement.type);
     }
+    // eslint-disable-next-line
   }, [selectedElementId]);
 
   const draw = (ctx, frameCount) => {

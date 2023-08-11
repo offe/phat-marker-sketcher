@@ -85,7 +85,6 @@ const visualBlockToDescriptionElement = (visualBlock) => {
     default:
       //console.log({ visualBlock });
       throw new Error(`Unknown block type: ${visualBlock.type}`);
-      break;
   }
 };
 

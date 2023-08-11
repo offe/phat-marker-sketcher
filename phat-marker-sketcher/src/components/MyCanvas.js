@@ -77,7 +77,7 @@ const useCanvas = (draw, size, canvasRef) => {
 const MyCanvas = (props) => {
   const { draw, eventListeners, ...rest } = props;
   const [size, setSize] = useState({ width: 0, height: 0 });
-  const canvasRef = useRef();
+  const canvasRef = useRef(null);
   useCanvas(draw, size, canvasRef);
 
   const onResize = useCallback((target, resizeEntry) => {
