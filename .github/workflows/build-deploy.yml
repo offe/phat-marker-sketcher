@@ -18,23 +18,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Move into subproject
-        run: cd phat-marker-sketcher
-      - name: Where am I
-        run: pwd
-      - name: What's here
-        run: ls
-      - name: Move into subproject 2
-        run: cd phat-marker-sketcher
-      - name: Where am I 2
-        run: pwd
-      - name: What's here 2
-        run: ls
 
       - name: Setup node
         uses: actions/setup-node@v3
+        working-directory: phat-marker-sketcher
         with:
-          node-version: 18.14.2
+          node-version: 20.4.0
           cache: npm
 
       - name: Install
