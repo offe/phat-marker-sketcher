@@ -1,12 +1,19 @@
 # phat-marker-sketcher
 
-A web tool for actual design using fat marker sketches – nail the big picture first
+A web tool for actual design using fat marker sketches
 
 > “Design is not just what it looks like and feels like. Design is how it works.” – Steve Jobs.
+
+Impatient? [Try the app.](https://offe.github.io/phat-marker-sketcher)
 
 ## Introduction
 
 There is a technique in early software development stages where focus is on the big picture. What screens do we have? What kind of information is presented there? How do you navigate between these pages? Starting digging into more details that early will slow down the progress and may cause the team to get stuck in early ideas before the great ideas are reached.
+
+Read more about Fat marker sketches:
+
+- [Basecamp](https://basecamp.com/shapeup/1.3-chapter-04#fat-marker-sketches)
+- [Dom Habersack](https://domhabersack.com/fat-marker-sketches)
 
 ![Sketch of UI for Phat Marker Sketcher](images/phamask1.png)
 
@@ -42,6 +49,7 @@ The first step is a simple frontend only app, where you can load and save JSON-f
 - No backend, files loaded and saved
 - Few basic elements, perhaps only boxes and text
 - Desktop only, fairly wide screens assumed
+- Not handling touch events
 - No links to pages from elements
 
 ## Implementation
@@ -50,7 +58,7 @@ The app is written in javascript (and possibly soon typescript). It uses the Rea
 
 The document editor includes the possibility to change to bold, italic and so on. It supports lists and tables. The document editor part is using editorjs.
 
-The undo feature is central in these types of apps, so all interactions are modelled using the Command Pattern. The last couple of hundred actions are also saved in the JSON export.
+The undo feature is central in these types of apps, so all interactions are soon to be modelled using the Command Pattern. The last couple of hundred actions will also saved in the JSON export.
 
 ## Future
 
@@ -79,15 +87,17 @@ The undo feature is central in these types of apps, so all interactions are mode
   - Small
   - Medium
   - Large
-- Phone
+- Small phone
   - Portrait
   - Landscape
-- Phablet
+- Large phone
   - Portrait
   - Landscape
 - Tablet
   - Portrait
   - Landscape
+
+Or perhaps a couple of named devices? A device would only be width and height of the screen in the sketch.
 
 ## Todo
 
@@ -98,11 +108,14 @@ The undo feature is central in these types of apps, so all interactions are mode
 - Have a look at undo/redo
 - iPad support
 - Change paper size
-
+- Change grid size
+- Add sub grid
 - Have a look on how often stuff is redrawn for no reason
 - Expand mainState into dict
 - Add lasso (when shiftKey is true for mousemove when otherwise draw would start)
 - Add multiselect - drag and delete should work (not resize)
 - Set minimum size for elements to 1, 1 - no more weird inverted lines
 
-- https://github.com/LingDong-/skeleton-tracing
+## Questions
+
+How to simplify adding a bunch of dynamic, hand drawn looking elements? https://github.com/LingDong-/skeleton-tracing perhaps? Or thinning using imagemagick and then trace bitmap in Inkscape?
