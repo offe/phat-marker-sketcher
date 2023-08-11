@@ -20,6 +20,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Move into subproject
         run: cd phat-marker-sketcher
+      - name: Where am I
+        run: pwd
 
       - name: Setup node
         uses: actions/setup-node@v3
