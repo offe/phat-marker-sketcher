@@ -2,6 +2,8 @@
   "name": "phat-marker-sketcher",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
+  "_comment": "setting homepage to . is not recommenden. But works (?)",
   "dependencies": {
     "@editorjs/editorjs": "^2.27.2",
     "@editorjs/header": "^2.7.0",
