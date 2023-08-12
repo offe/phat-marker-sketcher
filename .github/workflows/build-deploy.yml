@@ -34,7 +34,7 @@ jobs:
       - name: Compile
         run: |
           cd phat-marker-sketcher
-          npm run build
+          PUBLIC_URL=https://offe.github.com/phat-marker-sketcher/ npm run build
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v1
         with:
