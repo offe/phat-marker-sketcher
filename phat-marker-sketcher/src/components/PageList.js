@@ -4,8 +4,12 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import TreeItem from "@mui/lab/TreeItem";
 import TreeView from "@mui/lab/TreeView";
-import { Typography } from "@mui/material";
-import { ProjectContext, UiStateContext } from "./ProjectContext";
+import { IconButton, Typography } from "@mui/material";
+import {
+  ProjectContext,
+  ProjectDispatchContext,
+  UiStateContext,
+} from "./ProjectContext";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -13,13 +17,40 @@ import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
+import DeleteIcon from "@mui/icons-material/Delete";
+import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 export default function PageList() {
   const project = useContext(ProjectContext);
-  const { elementType, setElementType } = useContext(UiStateContext);
+  const projectDispatch = useContext(ProjectDispatchContext);
+  const {
+    elementType,
+    setElementType,
+    selectNextElementId,
+    setSelectedElementId,
+    setMainState,
+    selectedElementId,
+  } = useContext(UiStateContext);
 
   const handleElementTypeChange = (event) => {
     setElementType(event.target.value);
+  };
+
+  const handleSelectNextElement = () => {
+    selectNextElementId(project.pages[0].elements, 1);
+  };
+  const handleSelectPreviousElement = () => {
+    selectNextElementId(project.pages[0].elements, -1);
+  };
+  const handleDeleteElement = () => {
+    projectDispatch({
+      type: "delete-element",
+      pageNumber: 0,
+      elementId: selectedElementId,
+    });
+    setSelectedElementId(undefined);
+    setMainState("idle");
   };
 
   const elementTypes = [
@@ -72,7 +103,23 @@ export default function PageList() {
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography>{`Element details`}</Typography>
         </AccordionSummary>
-        <AccordionDetails>Nothing here yet</AccordionDetails>
+        <AccordionDetails>
+          <IconButton aria-label="delete" onClick={handleDeleteElement}>
+            <DeleteIcon />
+          </IconButton>
+          <IconButton
+            aria-label="previous element"
+            onClick={handleSelectPreviousElement}
+          >
+            <NavigateBeforeIcon />
+          </IconButton>
+          <IconButton
+            aria-label="next element"
+            onClick={handleSelectNextElement}
+          >
+            <NavigateNextIcon />
+          </IconButton>
+        </AccordionDetails>
       </Accordion>
     </>
   );

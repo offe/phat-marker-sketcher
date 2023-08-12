@@ -60,18 +60,16 @@ export default function SketchArea() {
   const project = useContext(ProjectContext);
   const projectDispatch = useContext(ProjectDispatchContext);
   const { elements } = project.pages[0];
-  const [mainState, _setMainState] = useState("idle");
   const [showsGrid, setShowsGrid] = useState(true);
   const {
     elementType,
     setElementType,
     selectedElementId,
     setSelectedElementId,
+    selectNextElementId,
+    mainState,
+    setMainState,
   } = useContext(UiStateContext);
-  const setMainState = (newState) => {
-    console.log(`mainState change: ${mainState} -> ${newState}`);
-    _setMainState(newState);
-  };
 
   const setElements = (elements) => {
     projectDispatch({
@@ -627,7 +625,7 @@ export default function SketchArea() {
             case "Tab":
               //console.log("Tab in idle");
               if (elements.length > 0) {
-                setSelectedElementId(elements[0].id);
+                selectNextElementId(elements, keyEvent.shiftKey ? -1 : 1);
                 setMainState("selected");
               }
               break;
@@ -651,14 +649,18 @@ export default function SketchArea() {
         case "selected":
           switch (keyEvent.code) {
             case "Backspace":
-              setElements([
-                ...elements.filter(({ id }) => id !== selectedElementId),
-              ]);
+              projectDispatch({
+                type: "delete-element",
+                pageNumber: 0,
+                elementId: selectedElementId,
+              });
               setSelectedElementId(undefined);
               setMainState("idle");
               break;
             case "Tab":
               //console.log("Tab in selected");
+              selectNextElementId(elements, keyEvent.shiftKey ? -1 : 1);
+              /*
               const currentIndex = elements.findIndex(
                 ({ id }) => id === selectedElementId
               );
@@ -668,6 +670,7 @@ export default function SketchArea() {
                   elements.length) %
                 elements.length;
               setSelectedElementId(elements[nextIndex].id);
+              */
               break;
             case "ArrowRight":
             case "ArrowLeft": {

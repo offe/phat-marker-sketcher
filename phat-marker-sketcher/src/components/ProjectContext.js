@@ -8,13 +8,42 @@ export const UiStateContext = createContext(null);
 export const UiStateContextProvider = (props) => {
   const [elementType, setElementType] = useState("box");
   const [selectedElementId, setSelectedElementId] = useState(undefined);
+  const [mainState, _setMainState] = useState("idle");
+  const setMainState = (newState) => {
+    console.log(`mainState change: ${mainState} -> ${newState}`);
+    _setMainState(newState);
+  };
+
+  const selectNextElementId = (elements, direction) => {
+    if (!["idle", "selected"].includes(mainState)) {
+      return;
+    }
+    const currentIndex = elements.findIndex(
+      ({ id }) => id === selectedElementId
+    );
+    var nextIndex = 0;
+    if (currentIndex === undefined) {
+      if (direction === -1) {
+        nextIndex = elements.length - 1;
+      }
+    } else {
+      nextIndex =
+        (currentIndex + direction + elements.length) % elements.length;
+    }
+    setSelectedElementId(elements[nextIndex].id);
+    setMainState("selected");
+  };
+
   return (
     <UiStateContext.Provider
       value={{
+        mainState,
+        setMainState,
         elementType,
         setElementType,
         selectedElementId,
         setSelectedElementId,
+        selectNextElementId,
       }}
     >
       {props.children}
@@ -108,7 +137,9 @@ export const _projectReducer = (project, action) => {
       if (project.pages[action.pageNumber].pageName !== action.pageName) {
         return {
           ...project,
-          pages: [{ ...project.pages[0], pageName: action.pageName }],
+          pages: [
+            { ...project.pages[action.pageNumber], pageName: action.pageName },
+          ],
         };
       } else {
         //console.log("No rename needed");
@@ -119,6 +150,19 @@ export const _projectReducer = (project, action) => {
       return {
         ...project,
         pages: [{ ...project.pages[0], elements: action.elements }],
+      };
+    }
+    case "delete-element": {
+      return {
+        ...project,
+        pages: [
+          {
+            ...project.pages[action.pageNumber],
+            elements: project.pages[action.pageNumber].elements.filter(
+              ({ id }) => id !== action.elementId
+            ),
+          },
+        ],
       };
     }
     case "editor-change": {
